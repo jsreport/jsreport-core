@@ -4,7 +4,6 @@ var assert = require("assert"),
     path = require("path"),
     fs = require("fs"),
     util = require("../lib/util/util.js"),
-    shortid = require("shortid"),
     FileSystem = require("../lib/blobStorage/fileSystemBlobStorage.js"),
     tmpDir = require("os").tmpDir(),
     Readable = require("stream").Readable;
@@ -31,7 +30,7 @@ describe('fileSystemBlobStorage', function () {
         ms.push("Hey");
         ms.push(null);
 
-        var blobName = shortid.generate();
+        var blobName = "blobname";
 
         self.blobStorage.write(blobName, new Buffer("Hula"), function(err) {
             if (err)

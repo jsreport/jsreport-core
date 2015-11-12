@@ -1,16 +1,14 @@
 /*globals describe, it, beforeEach, afterEach */
 
-var assert = require("assert"),
-    path = require("path"),
-    bootstrapper = require("../lib/bootstrapper.js"),
-    connectionString = require("./helpers.js").connectionString;
+var path = require("path"),
+    bootstrapper = require("../lib/bootstrapper.js");
 
 describe('bootstrapper', function () {
 
     it('should not fail', function (done) {
         this.timeout(5000);
         bootstrapper({
-            connectionString: connectionString,
+            connectionString: { name: "neDB", inMemory: true},
             rootDirectory: path.join(__dirname, "../"),
             blobStorage: "fileSystem",
             extensions: ["mongodb-store", "templates"]

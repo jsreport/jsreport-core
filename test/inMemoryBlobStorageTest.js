@@ -4,10 +4,7 @@ var assert = require("assert"),
     path = require("path"),
     fs = require("fs"),
     util = require("../lib/util/util.js"),
-    shortid = require("shortid"),
-    InMemoryBlobStorage = require("../lib/blobStorage/inMemoryBlobStorage.js"),
-    tmpDir = require("os").tmpDir(),
-    Readable = require("stream").Readable;
+    InMemoryBlobStorage = require("../lib/blobStorage/inMemoryBlobStorage.js");
 
 describe('inMemoryBlobStorage', function () {
 

@@ -2,11 +2,7 @@
 
 var assert = require("assert"),
     Settings = require("../lib/util/settings.js"),
-    DocumentStore = require("../lib/store/documentStore.js"),
-    connectionString = require("./helpers.js").connectionString;
-
-if (process.env.DB !== "neDB")
-    return;
+    DocumentStore = require("../lib/store/documentStore.js");
 
 describe('Settings', function () {
 
@@ -16,7 +12,7 @@ describe('Settings', function () {
         self.settings = new Settings();
 
         self.documentStore = new DocumentStore({
-            connectionString: connectionString,
+            connectionString: { name: "neDB", inMemory: true},
             dataDirectory: "data",
             logger: new (require("../lib/util/consoleLogger.js"))()
         });
