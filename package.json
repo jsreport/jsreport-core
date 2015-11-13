@@ -17,6 +17,19 @@
     "type": "git",
     "url": "git@github.com:jsreport/jsreport-core.git"
   },
+  "standard": {
+    "ignore": [
+      "store/persistence.js", "test/indexTest.js", "test/extensionsManagerTest.js"
+    ],
+    "globals": [
+      "describe",
+      "it",
+      "beforeEach",
+      "define",
+      "ace",
+      "afterEach"
+    ]
+  },
   "dependencies": {
     "async": "0.9.0",
     "commander": "2.7.1",
@@ -38,18 +51,20 @@
   },
   "devDependencies": {
     "chai": "2.2.0",
+    "eslint": "^1.9.0",
+    "eslint-config-standard": "^4.4.0",
+    "eslint-config-standard-react": "^1.1.0",
     "expect": "1.6.0",
     "expect.js": "0.3.1",
-    "jsreport-mongodb-store": "0.1.0",
     "mocha": "2.2.1",
     "proxyquire": "1.4.0",
     "should": "5.2.0",
     "sinon": "1.14.1",
+    "standard": "^5.3.1",
     "supertest": "0.15.0"
   },
   "scripts": {
-    "test": "mocha test",
-    "start": "node lib/server.js"
+    "test": "mocha test && standard"
   },
   "main": "index.js",
   "license": "LGPL"
