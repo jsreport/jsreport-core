@@ -33,9 +33,6 @@ reporter.init().then(function () {
 }); 
 ```
 
-##Reporter
-TODO
-
 ##Custom extensions, recipes, engines
 
 - [Implementing custom jsreport extension](http://jsreport.net/learn/custom-extension)
@@ -61,6 +58,7 @@ TODO
 - [jsreport-text](https://github.com/jsreport/jsreport-text)
 - [jsreport-xlsx](https://github.com/jsreport/jsreport-xlsx)
 - [jsreport-html-to-xlsx](https://github.com/jsreport/jsreport-html-to-xlsx)
+- [jsreport-phantom-image](https://github.com/jsreport/jsreport-phantom-image)
 - [jsreport-html-to-text](https://github.com/jsreport/jsreport-html-to-text)
 - [jsreport-fop-pdf](https://github.com/jsreport/jsreport-fop-pdf)
 - [jsreport-client-html](https://github.com/jsreport/jsreport-client-html)
