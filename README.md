@@ -38,9 +38,9 @@ TODO
 
 ##Custom extensions, recipes, engines
 
-[Implementing custom jsreport extension](http://jsreport.net/learn/custom-extension)
-[Implementing custom jsreport recipe](http://jsreport.net/learn/custom-recipe)
-[Implementing custom jsreport engine](http://jsreport.net/learn/custom-engine)
+- [Implementing custom jsreport extension](http://jsreport.net/learn/custom-extension)
+- [Implementing custom jsreport recipe](http://jsreport.net/learn/custom-recipe)
+- [Implementing custom jsreport engine](http://jsreport.net/learn/custom-engine)
 
 
 ##List of extensions
