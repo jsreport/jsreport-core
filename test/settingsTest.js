@@ -9,7 +9,7 @@ describe('Settings', function () {
     self.settings = new Settings()
 
     self.documentStore = new DocumentStore({
-      connectionString: {name: 'neDB', inMemory: true},
+      connectionString: {name: 'memory', inMemory: true},
       dataDirectory: 'data',
       logger: new (require('../lib/util/consoleLogger.js'))()
     })

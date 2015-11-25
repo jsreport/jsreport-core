@@ -7,7 +7,7 @@ describe('document store', function () {
   beforeEach(function (done) {
     require('../lib/util/util.js').deleteFiles('../data')
     documentStore = new DocumentStore({
-      connectionString: {name: 'neDB'},
+      connectionString: {name: 'memory'},
       dataDirectory: '../data',
       logger: new (require('../lib/util/consoleLogger.js'))()
     })
