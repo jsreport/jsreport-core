@@ -2,7 +2,7 @@
 [![NPM Version](http://img.shields.io/npm/v/jsreport-core.svg?style=flat-square)](https://npmjs.com/package/jsreport-core)
 [![Build Status](https://travis-ci.org/jsreport/jsreport-core.png?branch=master)](https://travis-ci.org/jsreport/jsreport-core)
 
-**The minimalist [jsreport](http://jsreport.net) rendering core. **
+**The minimalist [jsreport](http://jsreport.net) rendering core.**
 
 You can use only specific parts of [jsreport](http://jsreport.net) you really need. This package contains the jsreport rendering core which is useless alone. However you can quickly install additional recipes or engines you like and start rendering.
 
@@ -11,6 +11,7 @@ You can use only specific parts of [jsreport](http://jsreport.net) you really ne
 >npm install jsreport-core
 >npm install jsreport-jsrender
 >npm install jsreport-phantom-pdf
+
 ```js
 var Reporter = require('jsreport-core').Reporter
 var reporter = new Reporter()
@@ -29,8 +30,7 @@ reporter.init().then(function () {
 	 //prints pdf with headline Hello world
      console.log(resp.content.toString());
    });
-});      
-     
+}); 
 ```
 
 ##Reporter
