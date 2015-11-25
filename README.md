@@ -85,6 +85,7 @@ TODO
 - [jsreport-resources](https://github.com/jsreport/jsreport-resources)
 - [jsreport-static-resources](https://github.com/jsreport/jsreport-static-resources)
 - [jsreport-client-app](https://github.com/jsreport/jsreport-client-app)
+- [jsreport-freeze](https://github.com/jsreport/jsreport-freeze)
 
 ##License
 LGPL
