@@ -9,7 +9,7 @@ You can use only specific parts of [jsreport](http://jsreport.net) you really ne
 ##Simple usage
 
 >npm install jsreport-core
->npm install jsreport-jsrender
+>npm install jsreport-jsrender  
 >npm install jsreport-phantom-pdf
 
 ```js
