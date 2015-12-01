@@ -89,6 +89,9 @@ You are also welcome to write your own extension or even publish it to the commu
 - [Implementing custom jsreport engine](http://jsreport.net/learn/custom-engine)
 
 ##Extensions auto discovery
+
+* Not all the extensions supports these method yet. We are working on it. *
+
 jsreport by default auto discovers extensions in the application's directory tree. This means jsreport by default searches for files `jsreport.config.js` which describes the extensions and applies all the extensions that are found. 
 
 jsreport extensions auto discovery slows down the startup and can be explicitly overrided using `use` function.
