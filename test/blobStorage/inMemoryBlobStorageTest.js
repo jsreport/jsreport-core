@@ -1,5 +1,5 @@
 var assert = require('assert')
-var InMemoryBlobStorage = require('../lib/blobStorage/inMemoryBlobStorage.js')
+var InMemoryBlobStorage = require('../../lib/blobStorage/inMemoryBlobStorage.js')
 
 describe('inMemoryBlobStorage', function () {
   it('write and read should result into equal string', function (done) {

@@ -1,15 +1,13 @@
 require('should')
-var DocumentStore = require('../lib/store/documentStore.js')
+var DocumentStore = require('../../lib/store/documentStore.js')
 
 describe('document store', function () {
   var documentStore
 
   beforeEach(function (done) {
-    require('../lib/util/util.js').deleteFiles('../data')
     documentStore = new DocumentStore({
       connectionString: {name: 'memory'},
-      dataDirectory: '../data',
-      logger: new (require('../lib/util/consoleLogger.js'))()
+      logger: new (require('../../lib/util/consoleLogger.js'))()
     })
     documentStore.registerEntityType('User', {
       '_id': {'type': 'Edm.String', key: true},

@@ -1,6 +1,6 @@
 var assert = require('assert')
-var Settings = require('../lib/util/settings.js')
-var DocumentStore = require('../lib/store/documentStore.js')
+var Settings = require('../../lib/util/settings.js')
+var DocumentStore = require('../../lib/store/documentStore.js')
 
 describe('Settings', function () {
   beforeEach(function (done) {
@@ -11,7 +11,7 @@ describe('Settings', function () {
     self.documentStore = new DocumentStore({
       connectionString: {name: 'memory', inMemory: true},
       dataDirectory: 'data',
-      logger: new (require('../lib/util/consoleLogger.js'))()
+      logger: new (require('../../lib/util/consoleLogger.js'))()
     })
     self.settings.registerEntity(self.documentStore)
 

@@ -1,8 +1,8 @@
 var assert = require('assert')
 var path = require('path')
 var fs = require('fs')
-var util = require('../lib/util/util.js')
-var FileSystem = require('../lib/blobStorage/fileSystemBlobStorage.js')
+var util = require('../../lib/util/util.js')
+var FileSystem = require('../../lib/blobStorage/fileSystemBlobStorage.js')
 var tmpDir = require('os').tmpDir()
 var Readable = require('stream').Readable
 
