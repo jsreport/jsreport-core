@@ -235,6 +235,9 @@ jsreport.documentStore.collection('templates')
 - [jsreport-client-app](https://github.com/jsreport/jsreport-client-app)
 - [jsreport-freeze](https://github.com/jsreport/jsreport-freeze)
 
+###Blob storages
+- [jsreport-azure-storage](https://github.com/jsreport/jsreport-azure-storage)
+
 ##License
 LGPL
 
