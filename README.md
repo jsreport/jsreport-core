@@ -50,7 +50,7 @@ jsreport.init().then(function () {
 	//[required definition of the document]
     template: { 
 	    //[required] templating engine used to assemble document
-	    engine: "jsrender",
+	    engine: "handlebars",
 	    //[required] recipe used for printing previously assembled document
 		recipe: "wkhtmltopdf", 
 		//[required] template for the engine		
@@ -78,6 +78,8 @@ The render returns promise with the single response value
 	headers: { ... }
 }
 ```
+
+The convention is that jsreport repository extension  starts with `jsreport-xxx`, but the extension real name and also the recipes or engines it registers excludes the `jsreport-` prefix. This means if you install extension `jsreport-handlebars` the engine's name you specify in the render should be `handlebars`.
 
 ##Extensions
 As you see in the first example. Even for the simplest pdf printing you need to install additional packages(extensions).  This is the philosophy of jsreport and you will need to install additional extensions very often. There are not just extensions adding support for a particular templating engine or printing technique. There are many extensions adding support for persisting templates, dynamic script evaluation or even visual html designer and API. To get the idea of the whole platform you can install the full [jsreport](http://jsreport.net/) distribution and pick what you like. Then you can go back to `jsreport-core` and install extensions you need.
@@ -119,9 +121,16 @@ require('jsreport-core')({
 	tasks: {
 		numberOfWorkers: 2,
 		strategy: "http-server | dedicated-process"
-	}
+	},
+	loadConfig: false
 })
 ```
+
+`jsreport-core` is also able to load configuration from other sources including configuration file, environment variables and command line parameters. This can be opted in through option `loadConfig:true`. If this option is set to true the configuration is merged from the following sources in the particular order:
+1. configuration file prod.config.json or dev.config.json based on the NODE_ENV
+2. command line arguments
+3. process environment variables
+4. options passed directly to the `bootstrapper` function
 
 Options with the name corresponding to the extension's name are forwarded to the particular extension. This is the common way how to globally configure all extensions at one place.
 ```js
@@ -132,21 +141,6 @@ require('jsreport-core')({
 	}
 })
 ```
-
-Another option how to pass configuration into jsreport is to use `bootstrapper`. This function merges jsreport configuration from the following sources in the particular order:
-
-1. configuration file prod.config.json or dev.config.json based on the NODE_ENV
-2. command line arguments
-3. process environment variables
-4. options passed directly to the `bootstrapper` function
-
-```js
-var jsreport;
-require('jsreport-core').bootstrapper({..}).start().then(function(b) {
-	jsreport = b.reporter
-})
-```
-
 You can find configuration notes for the full jsreport distribution [here](http://jsreport.net/learn/configuration).
 
 ##Listeners
