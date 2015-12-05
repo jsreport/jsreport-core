@@ -131,7 +131,7 @@ require('jsreport-core')({
 1. configuration file prod.config.json or dev.config.json based on the NODE_ENV
 2. command line arguments
 3. process environment variables
-4. options passed directly to the `bootstrapper` function
+4. options passed directly to `require('jsreport')({})`
 
 Options with the name corresponding to the extension's name are forwarded to the particular extension. This is the common way how to globally configure all extensions at one place.
 ```js
