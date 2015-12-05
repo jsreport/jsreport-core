@@ -92,7 +92,7 @@ You are also welcome to write your own extension or even publish it to the commu
 
 ##Extensions auto discovery
 
-* Not all the extensions supports these method yet. We are working on it. *
+*Not all the extensions supports these method yet. We are working on it.*
 
 jsreport by default auto discovers extensions in the application's directory tree. This means jsreport by default searches for files `jsreport.config.js` which describes the extensions and applies all the extensions that are found. 
 
@@ -127,6 +127,7 @@ require('jsreport-core')({
 ```
 
 `jsreport-core` is also able to load configuration from other sources including configuration file, environment variables and command line parameters. This can be opted in through option `loadConfig:true`. If this option is set to true the configuration is merged from the following sources in the particular order:
+
 1. configuration file prod.config.json or dev.config.json based on the NODE_ENV
 2. command line arguments
 3. process environment variables
