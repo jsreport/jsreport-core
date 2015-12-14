@@ -38,7 +38,7 @@
     "node.extend": "1.1.3",
     "q": "1.2.0",
     "reap": "0.1.0",
-    "toner": "0.1.5",
+    "toner": "0.1.6",
     "underscore": "1.8.3",
     "winston": "0.9.0"
   },
