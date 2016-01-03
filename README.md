@@ -92,8 +92,6 @@ You are also welcome to write your own extension or even publish it to the commu
 
 ##Extensions auto discovery
 
-*Not all the extensions supports these method yet. We are working on it.*
-
 jsreport by default auto discovers extensions in the application's directory tree. This means jsreport by default searches for files `jsreport.config.js` which describes the extensions and applies all the extensions that are found. 
 
 jsreport extensions auto discovery slows down the startup and can be explicitly overrided using `use` function.
@@ -143,6 +141,24 @@ require('jsreport-core')({
 })
 ```
 You can find configuration notes for the full jsreport distribution [here](http://jsreport.net/learn/configuration).
+
+##Logging
+jsreport leverages [winston](https://github.com/winstonjs/winston) logging abstraction together with [debug](https://github.com/visionmedia/debug) utility. To output logs in the console just simply set the `DEBUG` environment variable
+```bash
+DEBUG=jsreport node app.js
+```
+
+on windows do
+```bash
+set DEBUG=jsreport & node app.js
+```
+
+jsreport exposes `logger` property which can be used to adapt the logging as you like. You can for example just add [winston](https://github.com/winstonjs/winston) console transport and filter in only important log messages into console.
+```js
+var winston = require('winston')
+var jsreport = require('jsreport-core')()
+jsreport.logger.add(winston.transports.Console, { level: 'info' })
+```
 
 ##Listeners
 jsreport extensions are mainly using the system of event listeners to adapt the rendering process. Extension can for example listen to event which is called before the rendering process starts and adapt the input values. 

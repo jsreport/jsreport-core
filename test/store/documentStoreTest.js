@@ -7,7 +7,7 @@ describe('document store', function () {
   beforeEach(function (done) {
     documentStore = new DocumentStore({
       connectionString: {name: 'memory'},
-      logger: new (require('../../lib/util/consoleLogger.js'))()
+      logger: new (require('..//util/testLogger.js'))()
     })
     documentStore.registerEntityType('User', {
       '_id': {'type': 'Edm.String', key: true},

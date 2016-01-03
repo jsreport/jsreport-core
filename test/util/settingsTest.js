@@ -11,7 +11,7 @@ describe('Settings', function () {
     self.documentStore = new DocumentStore({
       connectionString: {name: 'memory', inMemory: true},
       dataDirectory: 'data',
-      logger: new (require('../../lib/util/consoleLogger.js'))()
+      logger: new (require('..//util/testLogger.js'))()
     })
     self.settings.registerEntity(self.documentStore)
 
