@@ -18,7 +18,9 @@
     "url": "git@github.com:jsreport/jsreport-core.git"
   },
   "standard": {
-    "ignore": [],
+    "ignore": [
+      "render/engineScript.js"
+    ],
     "globals": [
       "describe",
       "it",
@@ -38,7 +40,8 @@
     "node.extend": "1.1.3",
     "q": "1.2.0",
     "reap": "0.1.0",
-    "toner": "0.1.6",
+    "script-manager": "^0.4.4",
+    "streamifier": "^0.1.1",
     "underscore": "1.8.3",
     "winston": "0.9.0"
   },

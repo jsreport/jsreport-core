@@ -56,38 +56,6 @@ describe('reporter', function () {
     }).catch(done)
   })
 
-  it('should call listeners in render', function (done) {
-    var reporter = core({ rootDirectory: path.join(__dirname) })
-    reporter.extensionsManager.discover = false
-
-    reporter.init().then(function () {
-      var listenersCall = []
-      reporter.beforeRenderListeners.add('test', this, function () {
-        listenersCall.push('before')
-      })
-
-      reporter.validateRenderListeners.add('test', this, function () {
-        listenersCall.push('validateRender')
-      })
-
-      reporter.afterTemplatingEnginesExecutedListeners.add('test', this, function () {
-        listenersCall.push('afterTemplatingEnginesExecuted')
-      })
-
-      reporter.afterRenderListeners.add('test', this, function () {
-        listenersCall.push('after')
-      })
-
-      return reporter.render({template: {content: 'Hey', engine: 'none', recipe: 'html'}}).then(function (resp) {
-        listenersCall[0].should.be.eql('before')
-        listenersCall[1].should.be.eql('validateRender')
-        listenersCall[2].should.be.eql('afterTemplatingEnginesExecuted')
-        listenersCall[3].should.be.eql('after')
-        done()
-      })
-    }).catch(done)
-  })
-
   it('should parse dev.config.json when loadConfig', function (done) {
     process.env.NODE_ENV = 'development'
     var reporter = core({
