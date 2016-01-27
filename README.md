@@ -222,6 +222,7 @@ jsreport.documentStore.collection('templates')
 
 ###Recipes
 - [jsreport-phantom-pdf](https://github.com/jsreport/jsreport-phantom-pdf)
+- [jsreport-electron-pdf](https://github.com/bjrmatos/jsreport-electron-pdf)
 - [jsreport-text](https://github.com/jsreport/jsreport-text)
 - [jsreport-xlsx](https://github.com/jsreport/jsreport-xlsx)
 - [jsreport-html-to-xlsx](https://github.com/jsreport/jsreport-html-to-xlsx)
