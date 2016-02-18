@@ -81,6 +81,67 @@ The render returns promise with the single response value
 
 The convention is that jsreport repository extension  starts with `jsreport-xxx`, but the extension real name and also the recipes or engines it registers excludes the `jsreport-` prefix. This means if you install extension `jsreport-handlebars` the engine's name you specify in the render should be `handlebars`.
 
+###Native helpers
+By default you need to send helpers to the template in the string. This is because jsreport runs the template rendering by default in the external process to avoid freezing the application when there is an endless loop or other critical error in the helper. If you want to use your local functions for the helpers you need to switch rendering strategy to `in-process`.
+```js
+var jsreport = require('jsreport-core')( 
+   { tasks: { strategy: 'in-process' } })
+   
+jsreport.init().then(function() {
+  jsreport.render({ 
+	   template: { 
+		   content: '<h1>Hello {{:~foo())}}</h1>', 
+		   helpers: { foo: function() { }
+		   engine: 'jsrender', 
+		   recipe: 'phantom-pdf'
+		}
+   })
+})
+```	
+
+###Require in the helpers
+jsreport by default runs helpers in the sandbox where is the `require` function blocked. To unblock particular modules or local scripts you need to configure `tasks.allowedModules` option.
+
+```js
+var jsreport = require('jsreport-core')( 
+   { tasks: { allowedModules: ['moment'] } })
+
+//or unblock everything
+
+var jsreport = require('jsreport-core')( 
+   { tasks: { allowedModules: '*' } })
+``` 
+
+Additionally jsreport provides global variables which can be used to build the local script path and read it.
+
+```js
+var jsreport = require('jsreport-core')( 
+   { tasks: { allowedModules: '*' } })
+   
+jsreport.init().then(function() {
+  jsreport.render({ 
+	   template: { 
+		   content: '<script>{{:~jquery()}}</script>', 
+		   helpers: "function jquery() {
+		     var fs = require('fs');
+		     var path = require('path');
+             return fs.readFileSync(path.join(__rootDirectory, 'jquery.js'));
+           }",		      
+		   engine: 'jsrender', 
+		   recipe: 'phantom-pdf'
+		}
+   })
+})
+```
+
+The following variables are available in the global scope:
+
+`__rootDirectory` - two directories up from jsreport-core
+`__appDirectory` - directory of the script which is used when starting node
+`__parentModuleDirectory` - directory of script which was initializing jsreport-core
+
+
+
 ##Extensions
 As you see in the first example. Even for the simplest pdf printing you need to install additional packages(extensions).  This is the philosophy of jsreport and you will need to install additional extensions very often. There are not just extensions adding support for a particular templating engine or printing technique. There are many extensions adding support for persisting templates, dynamic script evaluation or even visual html designer and API. To get the idea of the whole platform you can install the full [jsreport](http://jsreport.net/) distribution and pick what you like. Then you can go back to `jsreport-core` and install extensions you need.
 
