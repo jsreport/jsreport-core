@@ -111,3 +111,4 @@ describe('reporter', function () {
     }).catch(done)
   })
 })
+
