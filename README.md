@@ -213,6 +213,8 @@ jsreport.documentStore.collection('templates')
 - [jsreport-fs-store](https://github.com/jsreport/jsreport-fs-store)
 - [jsreport-mongodb-store](https://github.com/jsreport/jsreport-mongodb-store)
 - [jsreport-embedded-store](https://github.com/jsreport/jsreport-embedded-store)
+- [jsreport-mssql-store](https://github.com/jsreport/jsreport-mssql-store)
+- [jsreport-postgres-store](https://github.com/jsreport/jsreport-postgres-store)
 
 ###Engines
 - [jsreport-jsrender](https://github.com/jsreport/jsreport-jsrender)
@@ -252,6 +254,7 @@ jsreport.documentStore.collection('templates')
 - [jsreport-static-resources](https://github.com/jsreport/jsreport-static-resources)
 - [jsreport-client-app](https://github.com/jsreport/jsreport-client-app)
 - [jsreport-freeze](https://github.com/jsreport/jsreport-freeze)
+- [jsreport-debug](https://github.com/jsreport/jsreport-debug)
 
 ###Blob storages
 - [jsreport-azure-storage](https://github.com/jsreport/jsreport-azure-storage)
