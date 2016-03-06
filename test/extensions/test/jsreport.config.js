@@ -1,6 +1,7 @@
 module.exports = {
   'name': 'test',
   'main': 'main.js',
-  'dependencies': [ ]
+  'dependencies': [ ],
+  'hasPublicPart': false
 }
 
