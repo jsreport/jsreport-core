@@ -1,6 +1,6 @@
 {
   "name": "jsreport-core",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": {
     "name": "Jan Blaha",
     "email": "jan.blaha@hotmail.com"
@@ -47,12 +47,12 @@
     "winston": "0.9.0"
   },
   "devDependencies": {
-    "eslint": "^1.9.0",
-    "eslint-config-standard": "^4.4.0",
-    "eslint-config-standard-react": "^1.1.0",
-    "mocha": "^2.2.1",
-    "should": "^5.2.0",
-    "standard": "^5.3.1"
+    "eslint": "1.9.0",
+    "eslint-config-standard": "4.4.0",
+    "eslint-config-standard-react": "1.1.0",
+    "mocha": "2.2.1",
+    "should": "5.2.0",
+    "standard": "5.3.1"
   },
   "scripts": {
     "test": "mocha test/**/*.js && standard"
