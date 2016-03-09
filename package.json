@@ -19,7 +19,7 @@
   },
   "standard": {
     "ignore": [
-      "render/engineScript.js"
+      "lib/render/engineScript.js"
     ],
     "globals": [
       "describe",
