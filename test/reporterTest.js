@@ -23,7 +23,7 @@ describe('reporter', function () {
   })
 
   it('should be able to use custom extension', function (done) {
-    var reporter = core({ rootDirectory: path.join(__dirname) })
+    var reporter = core({rootDirectory: path.join(__dirname)})
     var extensionInitialized = false
     reporter.use({
       name: 'test',
@@ -39,7 +39,7 @@ describe('reporter', function () {
   })
 
   it('should fire initializeListeners on custom extension', function (done) {
-    var reporter = core({ rootDirectory: path.join(__dirname) })
+    var reporter = core({rootDirectory: path.join(__dirname)})
     var extensionInitialized = false
     reporter.use({
       name: 'test',
@@ -108,6 +108,25 @@ describe('reporter', function () {
     reporter.init().then(function () {
       reporter.options.httpPort.should.be.eql(6000)
       done()
+    }).catch(done)
+  })
+
+  it('should promisify blob storage', function (done) {
+    var reporter = core({discover: false})
+
+    reporter.init().then(function () {
+      return reporter.blobStorage.write('test', new Buffer('str'), {}, {}).then(function () {
+        return reporter.blobStorage.read('test').then(function (stream) {
+          var content = ''
+          stream.on('data', function (buf) {
+            content += buf.toString()
+          })
+          stream.on('end', function () {
+            content.should.be.eql('str')
+            done()
+          })
+        })
+      })
     }).catch(done)
   })
 })
