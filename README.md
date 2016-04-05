@@ -25,7 +25,7 @@ Note that `jsreport-core` by default auto discovers installed extensions and app
 var jsreport = require('jsreport-core')()
 
 jsreport.init().then(function () {     
-   jsreport.render({ 
+   return jsreport.render({ 
 	   template: { 
 		   content: '<h1>Hello {{:foo}}</h1>', 
 		   engine: 'jsrender', 
@@ -88,7 +88,7 @@ var jsreport = require('jsreport-core')(
    { tasks: { strategy: 'in-process' } })
    
 jsreport.init().then(function() {
-  jsreport.render({ 
+ return  jsreport.render({ 
 	   template: { 
 		   content: '<h1>Hello {{:~foo())}}</h1>', 
 		   helpers: { foo: function() { }
@@ -115,19 +115,19 @@ var jsreport = require('jsreport-core')(
 Additionally jsreport provides global variables which can be used to build the local script path and read it.
 
 ```js
-var jsreport = require('jsreport-core')( 
+var jsreport = require('jsreport-core')(
    { tasks: { allowedModules: '*' } })
-   
+
 jsreport.init().then(function() {
-  jsreport.render({ 
-	   template: { 
-		   content: '<script>{{:~jquery()}}</script>', 
-		   helpers: "function jquery() {
-		     var fs = require('fs');
-		     var path = require('path');
-             return fs.readFileSync(path.join(__rootDirectory, 'jquery.js'));
-           }",		      
-		   engine: 'jsrender', 
+  return jsreport.render({
+	   template: {
+		   content: '<script>{{:~jquery()}}</script>',
+		   helpers: "function jquery() {" +
+		     "var fs = require('fs');" +
+		     "var path = require('path');" +
+             "return fs.readFileSync(path.join(__rootDirectory, 'jquery.js'));" +
+           }",
+		   engine: 'jsrender',
 		   recipe: 'phantom-pdf'
 		}
    })
