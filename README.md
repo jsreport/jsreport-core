@@ -126,7 +126,7 @@ jsreport.init().then(function() {
 		     "var fs = require('fs');" +
 		     "var path = require('path');" +
              "return fs.readFileSync(path.join(__rootDirectory, 'jquery.js'));" +
-           }",
+           "}",
 		   engine: 'jsrender',
 		   recipe: 'phantom-pdf'
 		}
