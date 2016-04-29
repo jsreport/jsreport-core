@@ -181,7 +181,9 @@ require('jsreport-core')({
 		numberOfWorkers: 2,
 		strategy: "http-server | dedicated-process"
 	},
-	loadConfig: false
+	loadConfig: false,
+	//the temporary files used to render reports are cleaned up by default
+	autoTempCleanup: true
 })
 ```
 
