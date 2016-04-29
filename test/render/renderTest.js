@@ -92,4 +92,23 @@ describe('render', function () {
       done()
     }).catch(done)
   })
+
+  it('should call renderErrorListeners', function (done) {
+    reporter.beforeRenderListeners.add('test', function (req, res) {
+      throw new Error('intentional')
+    })
+
+    var loggedError
+    reporter.renderErrorListeners.add('test', function (req, res, e) {
+      loggedError = e.message
+    })
+
+    reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}}).then(function () {
+      done(new Error('it should have failed'))
+    }).catch(function () {
+      loggedError.should.be.eql('intentional')
+      done()
+    })
+  })
 })
+

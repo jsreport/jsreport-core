@@ -244,6 +244,7 @@ jsreport currently support these main listeners
 - `validateRenderListeners(req, res)` - possible to reject rendering before it starts, jsut return failed promise or exception<br/>
 - `afterTemplatingEnginesExecutedListeners(req, res)` - engine like handlebars or jsrender extracted the content, the `res.content` contains Buffer with extracted content<br/>
 - `afterRenderListeners(req, res)` - recipes are executed, `res.content` contains final buffer which will be returned as a stream back, the last change to modify the output or send it elsewhere<br/>
+- `renderErrorListeners(req, res, err)` - fired when there is error somewhere in the rendering pipeline
 
 
 ##Studio
