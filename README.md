@@ -179,7 +179,11 @@ require('jsreport-core')({
 	//see the https://github.com/pofider/node-script-manager for more information
 	tasks: {
 		numberOfWorkers: 2,
-		strategy: "http-server | dedicated-process"
+		strategy: "http-server | dedicated-process",
+		templateCache: {
+		   max: 100, //LRU cache with max 100 entries, see npm lru-cache for other options
+		   enabled: true //disable cache
+		}
 	},
 	loadConfig: false,
 	//the temporary files used to render reports are cleaned up by default

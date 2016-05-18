@@ -28,6 +28,7 @@ describe('engine', function () {
     })
 
     common(scriptManager)
+    cache(scriptManager)
   })
 
   describe('engine with in-process strategy', function () {
@@ -41,6 +42,7 @@ describe('engine', function () {
     })
 
     common(scriptManager)
+    cache(scriptManager)
 
     it('should be able pass helpers in javascript object', function (done) {
       engine({
@@ -66,6 +68,74 @@ describe('engine', function () {
     })
   })
 
+  function cache (scriptManager) {
+    it('second hit should go from cache', function (done) {
+      engine({
+        template: {
+          content: 'content'
+        },
+        nativeModules: [],
+        engine: path.join(__dirname, 'emptyEngine.js')
+      }, function () {
+      }, function (err, res) {
+        if (err) {
+          return done(err)
+        }
+
+        engine({
+          template: {
+            content: 'content'
+          },
+          nativeModules: [],
+          engine: path.join(__dirname, 'emptyEngine.js')
+        }, function () {
+        }, function (err, res) {
+          if (err) {
+            return done(err)
+          }
+
+          res.isFromCache.should.be.ok
+          res.content.should.be.eql('content')
+          done()
+        })
+      })
+    })
+
+    it('should return logs from console also on the cache hit', function (done) {
+      engine({
+        template: {
+          content: '',
+          helpers: 'function a() { console.log(\'foo\') }'
+        },
+        engine: path.join(__dirname, 'helpersEngine.js')
+      }, function () {
+      }, function (err, res) {
+        if (err) {
+          return done(err)
+        }
+
+        engine({
+          template: {
+            content: '',
+            helpers: 'function a() { console.log(\'foo\') }'
+          },
+          engine: path.join(__dirname, 'helpersEngine.js')
+        }, function () {
+
+        }, function (err, res) {
+          if (err) {
+            return done(err)
+          }
+
+          res.logs.should.have.length(2)
+          res.logs[1].message.should.be.eql('foo')
+
+          done()
+        })
+      })
+    })
+  }
+
   function common (scriptManager) {
     it('should be able to return from a simple engine', function (done) {
       engine({
@@ -73,6 +143,7 @@ describe('engine', function () {
           content: 'content'
         },
         nativeModules: [],
+        tasks: {templateCache: {enabled: false}},
         engine: path.join(__dirname, 'emptyEngine.js')
       }, function () {
       }, function (err, res) {
@@ -92,6 +163,7 @@ describe('engine', function () {
           helpers: 'function a() { return \"foo\"; }'
         },
         nativeModules: [],
+        tasks: {templateCache: {enabled: false}},
         engine: path.join(__dirname, 'helpersEngine.js')
       }, function () {
       }, function (err, res) {
@@ -109,6 +181,25 @@ describe('engine', function () {
         template: {content: ''},
         engine: path.join(__dirname, 'dataEngine.js'),
         nativeModules: [],
+        tasks: {templateCache: {enabled: false}},
+        data: {'a': {'val': 'foo'}}
+      }, function () {
+      }, function (err, res) {
+        if (err) {
+          return done(err)
+        }
+
+        res.content.should.be.eql('foo')
+        done()
+      })
+    })
+
+    it('should work with engine returning string instead of function', function (done) {
+      engine({
+        template: {content: ''},
+        engine: path.join(__dirname, 'oldFormatEngine.js'),
+        nativeModules: [],
+        tasks: {templateCache: {enabled: false}},
         data: {'a': {'val': 'foo'}}
       }, function () {
       }, function (err, res) {
@@ -127,8 +218,7 @@ describe('engine', function () {
           content: '',
           helpers: 'function a() { require(\"fs\"); }'
         },
-        allowedModules: [],
-        nativeModules: [],
+        tasks: {templateCache: {enabled: false}},
         engine: path.join(__dirname, 'helpersEngine.js')
       }, function () {
       }, function (err, res) {
@@ -140,14 +230,13 @@ describe('engine', function () {
       })
     })
 
-    it('should block unblock all modules with *', function (done) {
+    it('should unblock all modules with *', function (done) {
       engine({
         template: {
           content: '',
           helpers: 'function a() { require(\"fs\"); }'
         },
-        allowedModules: '*',
-        nativeModules: [],
+        tasks: {allowedModules: '*', templateCache: {enabled: false}},
         engine: path.join(__dirname, 'helpersEngine.js')
       }, function () {
       }, function (err, res) {
@@ -166,8 +255,7 @@ describe('engine', function () {
           helpers: 'function a() { require(\"fs\"); }'
         },
         engine: path.join(__dirname, 'helpersEngine.js'),
-        nativeModules: [],
-        allowedModules: ['fs']
+        tasks: {templateCache: {enabled: false}, nativeModules: [], allowedModules: ['fs']}
       }, function () {
       }, function (err, res) {
         if (err) {
@@ -185,7 +273,7 @@ describe('engine', function () {
           helpers: 'function a() { return _.isArray([]); }'
         },
         engine: path.join(__dirname, 'helpersEngine.js'),
-        nativeModules: [{globalVariableName: '_', module: 'underscore'}]
+        tasks: {templateCache: {enabled: false}, nativeModules: [{globalVariableName: '_', module: 'underscore'}]}
       }, function () {
       }, function (err, res) {
         if (err) {
@@ -206,8 +294,7 @@ describe('engine', function () {
           'b': {'$id': '1', 'val': 'foo'},
           'a': {'$ref': '1'}
         },
-        engine: path.join(__dirname, 'dataEngine.js'),
-        nativeModules: []
+        engine: path.join(__dirname, 'dataEngine.js')
       }, function () {
       }, function (err, res) {
         if (err) {
@@ -225,7 +312,7 @@ describe('engine', function () {
           content: 'content',
           helpers: "function a() { return require('helperB')(); }"
         },
-        allowedModules: ['helperB'],
+        tasks: {templateCache: {enabled: false}, nativeModules: [], allowedModules: ['helperB']},
         rootDirectory: __dirname,
         appDirectory: __dirname,
         parentModuleDirectory: __dirname,
@@ -248,11 +335,10 @@ describe('engine', function () {
           content: 'content',
           helpers: "function a() { return require('helperB')(); }"
         },
-        allowedModules: ['helperB'],
+        tasks: {templateCache: {enabled: false}, nativeModules: [], allowedModules: ['helperB']},
         rootDirectory: __dirname,
         appDirectory: 'foo',
         parentModuleDirectory: 'foo',
-        nativeModules: [],
         engine: path.join(__dirname, 'helpersEngine.js')
       }, function () {
       }, function (err, res) {
@@ -271,11 +357,10 @@ describe('engine', function () {
           content: 'content',
           helpers: "function a() { return require('helperB')(); }"
         },
-        allowedModules: ['helperB'],
+        tasks: {templateCache: {enabled: false}, nativeModules: [], allowedModules: ['helperB']},
         rootDirectory: 'foo',
         appDirectory: __dirname,
         parentModuleDirectory: 'foo',
-        nativeModules: [],
         engine: path.join(__dirname, 'helpersEngine.js')
       }, function () {
       }, function (err, res) {
@@ -294,11 +379,10 @@ describe('engine', function () {
           content: 'content',
           helpers: "function a() { return require('helperB')(); }"
         },
-        allowedModules: ['helperB'],
+        tasks: {templateCache: {enabled: false}, nativeModules: [], allowedModules: ['helperB']},
         rootDirectory: 'foo',
         appDirectory: 'foo',
         parentModuleDirectory: __dirname,
-        nativeModules: [],
         engine: path.join(__dirname, 'helpersEngine.js')
       }, function () {
       }, function (err, res) {
@@ -307,6 +391,27 @@ describe('engine', function () {
         }
 
         res.content.should.be.eql('b')
+        done()
+      })
+    })
+
+    it('should return logs from console', function (done) {
+      engine({
+        template: {
+          content: '',
+          helpers: 'function a() { console.log(\'foo\') }'
+        },
+        tasks: {allowedModules: '*', templateCache: {enabled: false}},
+        engine: path.join(__dirname, 'helpersEngine.js')
+      }, function () {
+      }, function (err, res) {
+        if (err) {
+          return done(err)
+        }
+
+        res.logs.should.have.length(2)
+        res.logs[1].message.should.be.eql('foo')
+
         done()
       })
     })

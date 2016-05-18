@@ -1,3 +1,5 @@
-module.exports = function (template, helpers, data) {
-  return helpers.a()
+module.exports = function (template) {
+  return function (helpers, data) {
+    return helpers.a()
+  }
 }
