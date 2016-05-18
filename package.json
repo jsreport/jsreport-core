@@ -18,9 +18,6 @@
     "url": "git@github.com:jsreport/jsreport-core.git"
   },
   "standard": {
-    "ignore": [
-      "lib/render/engineScript.js"
-    ],
     "globals": [
       "describe",
       "it",
