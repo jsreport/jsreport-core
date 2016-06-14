@@ -160,7 +160,7 @@ describe('engine', function () {
       engine({
         template: {
           content: '',
-          helpers: 'function a() { return \"foo\"; }'
+          helpers: 'function a() { return "foo"; }'
         },
         nativeModules: [],
         tasks: {templateCache: {enabled: false}},
@@ -216,7 +216,7 @@ describe('engine', function () {
       engine({
         template: {
           content: '',
-          helpers: 'function a() { require(\"fs\"); }'
+          helpers: 'function a() { require("fs"); }'
         },
         tasks: {templateCache: {enabled: false}},
         engine: path.join(__dirname, 'helpersEngine.js')
@@ -234,7 +234,7 @@ describe('engine', function () {
       engine({
         template: {
           content: '',
-          helpers: 'function a() { require(\"fs\"); }'
+          helpers: 'function a() { require("fs"); }'
         },
         tasks: {allowedModules: '*', templateCache: {enabled: false}},
         engine: path.join(__dirname, 'helpersEngine.js')
@@ -252,7 +252,7 @@ describe('engine', function () {
       engine({
         template: {
           content: '',
-          helpers: 'function a() { require(\"fs\"); }'
+          helpers: 'function a() { require("fs"); }'
         },
         engine: path.join(__dirname, 'helpersEngine.js'),
         tasks: {templateCache: {enabled: false}, nativeModules: [], allowedModules: ['fs']}
