@@ -114,8 +114,8 @@
     "url": "git+ssh://git@github.com/jsreport/jsreport-core.git"
   },
   "scripts": {
-    "test": "mocha test/render/engineTest.js && standard",
-    "test:watch": "mocha --watch test/render/engineTest.js"
+    "test": "mocha --recursive test",
+    "test:watch": "mocha --watch --recursive test"
   },
   "standard": {
     "globals": [

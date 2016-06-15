@@ -1,13 +1,13 @@
 var core = require('../index.js')
 var path = require('path')
-require('should')
+var should = require('should')
 
 describe('reporter', function () {
   it('should be able to render html without any extension applied using promises', function (done) {
-    var reporter = core({discover: false})
+    var reporter = core({ discover: false })
 
     reporter.init().then(function () {
-      return reporter.render({template: {content: 'Hey', engine: 'none', recipe: 'html'}}).then(function (resp) {
+      return reporter.render({ template: { content: 'Hey', engine: 'none', recipe: 'html' } }).then(function (resp) {
         resp.content.toString().should.be.eql('Hey')
         done()
       })
@@ -15,7 +15,7 @@ describe('reporter', function () {
   })
 
   it('should auto discover extensions when no use called', function (done) {
-    var reporter = core({rootDirectory: __dirname})
+    var reporter = core({ rootDirectory: __dirname })
     reporter.init().then(function () {
       reporter.testExtensionInitialized.should.be.eql(true)
       done()
@@ -23,7 +23,7 @@ describe('reporter', function () {
   })
 
   it('should be able to use custom extension', function (done) {
-    var reporter = core({rootDirectory: path.join(__dirname)})
+    var reporter = core({ rootDirectory: path.join(__dirname) })
     var extensionInitialized = false
     reporter.use({
       name: 'test',
@@ -39,7 +39,7 @@ describe('reporter', function () {
   })
 
   it('should fire initializeListeners on custom extension', function (done) {
-    var reporter = core({rootDirectory: path.join(__dirname)})
+    var reporter = core({ rootDirectory: path.join(__dirname) })
     var extensionInitialized = false
     reporter.use({
       name: 'test',
@@ -112,7 +112,7 @@ describe('reporter', function () {
   })
 
   it('should promisify blob storage', function (done) {
-    var reporter = core({discover: false})
+    var reporter = core({ discover: false })
 
     reporter.init().then(function () {
       return reporter.blobStorage.write('test', new Buffer('str'), {}, {}).then(function () {
@@ -127,6 +127,14 @@ describe('reporter', function () {
           })
         })
       })
+    }).catch(done)
+  })
+
+  it('should skip extension with enabled === false in config', function (done) {
+    var reporter = core({ rootDirectory: __dirname, test: { enabled: false } })
+    reporter.init().then(function () {
+      should(reporter.testExtensionInitialized).not.eql(true)
+      done()
     }).catch(done)
   })
 })
