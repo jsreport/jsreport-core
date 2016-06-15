@@ -245,7 +245,7 @@ Note this technique can be used in extensions, but also outside in nodejs applic
 
 jsreport currently support these main listeners
 
-- `initializeListener()`- called when all extensions are initialized<br/>
+- `initializeListeners()`- called when all extensions are initialized<br/>
 - `beforeRenderListeners(req, res)` - very first in the rendering pipeline, used to load templates and parse input data<br/>
 - `validateRenderListeners(req, res)` - possible to reject rendering before it starts, jsut return failed promise or exception<br/>
 - `afterTemplatingEnginesExecutedListeners(req, res)` - engine like handlebars or jsrender extracted the content, the `res.content` contains Buffer with extracted content<br/>

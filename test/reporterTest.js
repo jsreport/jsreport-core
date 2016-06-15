@@ -44,7 +44,7 @@ describe('reporter', function () {
     reporter.use({
       name: 'test',
       main: function (reporter, definition) {
-        reporter.initializeListener.add('test', function () {
+        reporter.initializeListeners.add('test', function () {
           extensionInitialized = true
         })
       }
