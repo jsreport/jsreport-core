@@ -1,4 +1,5 @@
 {
+  "version": "1.0.1",
   "author": {
     "email": "jan.blaha@hotmail.com",
     "name": "Jan Blaha"
@@ -10,7 +11,7 @@
   "dependencies": {
     "app-root-path": "1.2.0",
     "debug": "2.2.0",
-    "hasha": "^2.2.0",
+    "hasha": "2.2.0",
     "listener-collection": "0.1.0",
     "lru-cache": "^4.0.1",
     "mkdirp": "0.5.1",
@@ -75,5 +76,7 @@
       "afterEach"
     ]
   },
-  "version": "1.0.0"
+  "files":[
+    "lib", "index.js"
+  ]
 }
