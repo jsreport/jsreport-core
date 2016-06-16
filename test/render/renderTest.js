@@ -110,5 +110,19 @@ describe('render', function () {
       done()
     })
   })
+
+  it('should be able to hook to debug logs', function (done) {
+    var messages = []
+    reporter.beforeRenderListeners.add('test', function (req, res) {
+      req.logger.rewriters.push(function (level, msg, meta) {
+        messages.push(msg)
+      })
+    })
+
+    reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}}).then(function () {
+      messages.should.containEql('Executing recipe html')
+      done()
+    }).catch(done)
+  })
 })
 
