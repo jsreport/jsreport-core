@@ -137,5 +137,37 @@ describe('reporter', function () {
       done()
     }).catch(done)
   })
+
+  it('should use both discovered and used extensions if discover true', function (done) {
+    var reporter = core({ rootDirectory: path.join(__dirname) })
+    var extensionInitialized = false
+    reporter.discover()
+    reporter.use({
+      name: 'foo',
+      main: function (reporter, definition) {
+        extensionInitialized = true
+      }
+    })
+
+    reporter.init().then(function () {
+      extensionInitialized.should.be.eql(true)
+      reporter.testExtensionInitialized.should.be.ok
+      done()
+    }).catch(done)
+  })
+
+  it('should accept plain functions in use', function (done) {
+    var reporter = core()
+
+    var extensionInitialized = false
+    reporter.use(function (reporter, definition) {
+      extensionInitialized = true
+    })
+
+    reporter.init().then(function () {
+      extensionInitialized.should.be.eql(true)
+      done()
+    }).catch(done)
+  })
 })
 

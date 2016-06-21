@@ -1,21 +1,22 @@
 {
   "version": "1.0.1",
+  "name": "jsreport-core",
+  "homepage": "http://jsreport.net",
   "author": {
     "email": "jan.blaha@hotmail.com",
     "name": "Jan Blaha"
   },
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-core/issues"
+  "scripts": {
+    "test": "mocha --recursive test && standard",
+    "test:watch": "mocha --watch --recursive test"
   },
-  "contributors": [],
   "dependencies": {
     "app-root-path": "1.2.0",
     "debug": "2.2.0",
     "hasha": "2.2.0",
     "listener-collection": "0.1.0",
-    "lru-cache": "^4.0.1",
+    "lru-cache": "4.0.1",
     "mkdirp": "0.5.1",
-    "moment": "2.13.0",
     "nconf": "0.8.4",
     "nedb": "1.8.0",
     "node.extend": "1.1.5",
@@ -35,13 +36,9 @@
     "should": "9.0.2",
     "standard": "7.1.2"
   },
-  "directories": {},
-  "dist": {
-    "shasum": "8c7c72325347d4781f3de5c59eaabe6e0ba44ab8",
-    "tarball": "https://registry.npmjs.org/jsreport-core/-/jsreport-core-1.0.0.tgz"
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-core/issues"
   },
-  "gitHead": "b652665dc190e1eeb09fe1d13b4d3fdae7dd5a55",
-  "homepage": "http://jsreport.net",
   "keywords": [
     "report",
     "business",
@@ -55,16 +52,9 @@
       "name": "pofider"
     }
   ],
-  "name": "jsreport-core",
-  "optionalDependencies": {},
-  "readme": "ERROR: No README data found!",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/jsreport/jsreport-core.git"
-  },
-  "scripts": {
-    "test": "mocha --recursive test && standard",
-    "test:watch": "mocha --watch --recursive test"
   },
   "standard": {
     "globals": [
