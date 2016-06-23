@@ -15,7 +15,7 @@ describe('reporter', function () {
   })
 
   it('should auto discover extensions when no use called', function (done) {
-    var reporter = core({ rootDirectory: __dirname })
+    var reporter = core({ rootDirectory: __dirname, extensionsLocationCache: false })
     reporter.init().then(function () {
       reporter.testExtensionInitialized.should.be.eql(true)
       done()
