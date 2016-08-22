@@ -306,6 +306,25 @@ describe('engine', function () {
       })
     })
 
+    it('should not fail when extracting references from array containing null', function (done) {
+      engine({
+        template: {
+          content: ''
+        },
+        data: {
+          arr: [null]
+        },
+        engine: path.join(__dirname, 'emptyEngine.js')
+      }, function () {
+      }, function (err, res) {
+        if (err) {
+          return done(err)
+        }
+
+        done()
+      })
+    })
+
     it('should be able use local modules if enabled in allowedModules', function (done) {
       engine({
         template: {
