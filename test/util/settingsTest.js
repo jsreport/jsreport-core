@@ -10,7 +10,7 @@ describe('Settings', function () {
     self.settings = new Settings()
 
     self.documentStore = new DocumentStore({
-      connectionString: {name: 'memory', inMemory: true},
+      connectionString: { name: 'memory', inMemory: true },
       dataDirectory: 'data',
       logger: new (require('..//util/testLogger.js'))()
     })
@@ -48,9 +48,9 @@ describe('Settings', function () {
   it('should remove incompatible settings during startup', function () {
     var self = this
 
-    return this.documentStore.collection('settings').insert({ key: 'foo', value: 'test'})
+    return this.documentStore.collection('settings').insert({ key: 'foo', value: 'test' })
       .then(function () {
-        return self.documentStore.collection('settings').insert({ key: 'foo2', value: JSON.stringify({ x: 'a'})})
+        return self.documentStore.collection('settings').insert({ key: 'foo2', value: JSON.stringify({ x: 'a' }) })
       })
       .then(function () {
         return self.settings.init(self.documentStore)
