@@ -1,4 +1,5 @@
 var assert = require('assert')
+var should = require('should')
 var Settings = require('../../lib/util/settings.js')
 var DocumentStore = require('../../lib/store/documentStore.js')
 
@@ -42,5 +43,25 @@ describe('Settings', function () {
       assert.equal('val', self.settings.get('test').value)
       done()
     }).catch(done)
+  })
+
+  it('should remove incompatible settings during startup', function () {
+    var self = this
+
+    return this.documentStore.collection('settings').insert({ key: 'foo', value: 'test'})
+      .then(function () {
+        return self.documentStore.collection('settings').insert({ key: 'foo2', value: JSON.stringify({ x: 'a'})})
+      })
+      .then(function () {
+        return self.settings.init(self.documentStore)
+      }).then(function () {
+        return self.settings.findValue('foo')
+      }).then(function (val) {
+        should.not.exist(val)
+      }).then(function () {
+        return self.settings.findValue('foo2')
+      }).then(function (val) {
+        val.x.should.be.eql('a')
+      })
   })
 })
