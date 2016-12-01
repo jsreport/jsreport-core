@@ -18,7 +18,7 @@ describe('engine', function () {
   })
 
   describe('engine with http-server strategy', function () {
-    var scriptManager = ScriptManager({strategy: 'http-server'})
+    var scriptManager = ScriptManager({ strategy: 'http-server' })
 
     beforeEach(function (done) {
       scriptManager.ensureStarted(done)
@@ -32,7 +32,7 @@ describe('engine', function () {
   })
 
   describe('engine with in-process strategy', function () {
-    var scriptManager = ScriptManager({strategy: 'in-process'})
+    var scriptManager = ScriptManager({ strategy: 'in-process' })
 
     beforeEach(function (done) {
       scriptManager.ensureStarted(done)
@@ -62,6 +62,28 @@ describe('engine', function () {
           return done(err)
         }
 
+        res.content.should.be.eql('b')
+        done()
+      })
+    })
+
+    it('should not change the helpers string into object on the original template', function (done) {
+      var template = {
+        content: 'content',
+        helpers: 'function a() { return "b"; }'
+      }
+
+      engine({
+        template: template,
+        nativeModules: [],
+        engine: path.join(__dirname, 'helpersEngine.js')
+      }, function () {
+      }, function (err, res) {
+        if (err) {
+          return done(err)
+        }
+
+        template.helpers.should.be.type('string')
         res.content.should.be.eql('b')
         done()
       })
@@ -143,7 +165,7 @@ describe('engine', function () {
           content: 'content'
         },
         nativeModules: [],
-        tasks: {templateCache: {enabled: false}},
+        tasks: { templateCache: { enabled: false } },
         engine: path.join(__dirname, 'emptyEngine.js')
       }, function () {
       }, function (err, res) {
@@ -163,7 +185,7 @@ describe('engine', function () {
           helpers: 'function a() { return "foo"; }'
         },
         nativeModules: [],
-        tasks: {templateCache: {enabled: false}},
+        tasks: { templateCache: { enabled: false } },
         engine: path.join(__dirname, 'helpersEngine.js')
       }, function () {
       }, function (err, res) {
@@ -178,11 +200,11 @@ describe('engine', function () {
 
     it('should send data to the engine', function (done) {
       engine({
-        template: {content: ''},
+        template: { content: '' },
         engine: path.join(__dirname, 'dataEngine.js'),
         nativeModules: [],
-        tasks: {templateCache: {enabled: false}},
-        data: {'a': {'val': 'foo'}}
+        tasks: { templateCache: { enabled: false } },
+        data: { 'a': { 'val': 'foo' } }
       }, function () {
       }, function (err, res) {
         if (err) {
@@ -196,11 +218,11 @@ describe('engine', function () {
 
     it('should work with engine returning string instead of function', function (done) {
       engine({
-        template: {content: ''},
+        template: { content: '' },
         engine: path.join(__dirname, 'oldFormatEngine.js'),
         nativeModules: [],
-        tasks: {templateCache: {enabled: false}},
-        data: {'a': {'val': 'foo'}}
+        tasks: { templateCache: { enabled: false } },
+        data: { 'a': { 'val': 'foo' } }
       }, function () {
       }, function (err, res) {
         if (err) {
@@ -218,7 +240,7 @@ describe('engine', function () {
           content: '',
           helpers: 'function a() { require("fs"); }'
         },
-        tasks: {templateCache: {enabled: false}},
+        tasks: { templateCache: { enabled: false } },
         engine: path.join(__dirname, 'helpersEngine.js')
       }, function () {
       }, function (err, res) {
@@ -236,7 +258,7 @@ describe('engine', function () {
           content: '',
           helpers: 'function a() { require("fs"); }'
         },
-        tasks: {allowedModules: '*', templateCache: {enabled: false}},
+        tasks: { allowedModules: '*', templateCache: { enabled: false } },
         engine: path.join(__dirname, 'helpersEngine.js')
       }, function () {
       }, function (err, res) {
@@ -255,7 +277,7 @@ describe('engine', function () {
           helpers: 'function a() { require("fs"); }'
         },
         engine: path.join(__dirname, 'helpersEngine.js'),
-        tasks: {templateCache: {enabled: false}, nativeModules: [], allowedModules: ['fs']}
+        tasks: { templateCache: { enabled: false }, nativeModules: [], allowedModules: ['fs'] }
       }, function () {
       }, function (err, res) {
         if (err) {
@@ -273,7 +295,7 @@ describe('engine', function () {
           helpers: 'function a() { return _.isArray([]); }'
         },
         engine: path.join(__dirname, 'helpersEngine.js'),
-        tasks: {templateCache: {enabled: false}, nativeModules: [{globalVariableName: '_', module: 'underscore'}]}
+        tasks: { templateCache: { enabled: false }, nativeModules: [{ globalVariableName: '_', module: 'underscore' }] }
       }, function () {
       }, function (err, res) {
         if (err) {
@@ -291,8 +313,8 @@ describe('engine', function () {
         },
         data: {
           '$id': 0,
-          'b': {'$id': '1', 'val': 'foo'},
-          'a': {'$ref': '1'}
+          'b': { '$id': '1', 'val': 'foo' },
+          'a': { '$ref': '1' }
         },
         engine: path.join(__dirname, 'dataEngine.js')
       }, function () {
@@ -331,7 +353,7 @@ describe('engine', function () {
           content: 'content',
           helpers: "function a() { return require('helperB')(); }"
         },
-        tasks: {templateCache: {enabled: false}, nativeModules: [], allowedModules: ['helperB']},
+        tasks: { templateCache: { enabled: false }, nativeModules: [], allowedModules: ['helperB'] },
         rootDirectory: __dirname,
         appDirectory: __dirname,
         parentModuleDirectory: __dirname,
@@ -354,7 +376,7 @@ describe('engine', function () {
           content: 'content',
           helpers: "function a() { return require('helperB')(); }"
         },
-        tasks: {templateCache: {enabled: false}, nativeModules: [], allowedModules: ['helperB']},
+        tasks: { templateCache: { enabled: false }, nativeModules: [], allowedModules: ['helperB'] },
         rootDirectory: __dirname,
         appDirectory: 'foo',
         parentModuleDirectory: 'foo',
@@ -376,7 +398,7 @@ describe('engine', function () {
           content: 'content',
           helpers: "function a() { return require('helperB')(); }"
         },
-        tasks: {templateCache: {enabled: false}, nativeModules: [], allowedModules: ['helperB']},
+        tasks: { templateCache: { enabled: false }, nativeModules: [], allowedModules: ['helperB'] },
         rootDirectory: 'foo',
         appDirectory: __dirname,
         parentModuleDirectory: 'foo',
@@ -398,7 +420,7 @@ describe('engine', function () {
           content: 'content',
           helpers: "function a() { return require('helperB')(); }"
         },
-        tasks: {templateCache: {enabled: false}, nativeModules: [], allowedModules: ['helperB']},
+        tasks: { templateCache: { enabled: false }, nativeModules: [], allowedModules: ['helperB'] },
         rootDirectory: 'foo',
         appDirectory: 'foo',
         parentModuleDirectory: __dirname,
@@ -420,7 +442,7 @@ describe('engine', function () {
           content: '',
           helpers: 'function a() { console.log(\'foo\') }'
         },
-        tasks: {allowedModules: '*', templateCache: {enabled: false}},
+        tasks: { allowedModules: '*', templateCache: { enabled: false } },
         engine: path.join(__dirname, 'helpersEngine.js')
       }, function () {
       }, function (err, res) {
