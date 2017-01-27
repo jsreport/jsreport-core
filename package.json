@@ -11,30 +11,30 @@
     "test:watch": "mocha --watch --recursive test"
   },
   "dependencies": {
-    "app-root-path": "1.2.0",
-    "debug": "2.2.0",
+    "app-root-path": "2.0.1",
+    "bluebird": "3.4.7",
+    "debug": "2.6.0",
     "hasha": "2.2.0",
-    "listener-collection": "0.1.0",
-    "lru-cache": "4.0.1",
+    "listener-collection": "1.0.0",
+    "lru-cache": "4.0.2",
     "mkdirp": "0.5.1",
     "nconf": "0.8.4",
     "nedb": "1.8.0",
-    "node.extend": "1.1.5",
-    "q": "1.4.1",
+    "node.extend": "1.1.6", 
     "reap": "0.1.0",
     "script-manager": "0.5.7",
     "streamifier": "0.1.1",
     "underscore": "1.8.3",
-    "winston": "2.2.0"
+    "winston": "2.3.1"
   },
   "description": "javascript based business reporting",
   "devDependencies": {
-    "eslint": "2.12.0",
-    "eslint-config-standard": "5.3.1",
-    "eslint-config-standard-react": "2.4.0",
-    "mocha": "2.5.3",
-    "should": "9.0.2",
-    "standard": "7.1.2"
+    "eslint": "3.14.1",
+    "eslint-config-standard": "6.2.1",
+    "eslint-config-standard-react": "4.2.0",
+    "mocha": "3.2.0",
+    "should": "11.2.0",
+    "standard": "8.6.0"
   },
   "bugs": {
     "url": "https://github.com/jsreport/jsreport-core/issues"

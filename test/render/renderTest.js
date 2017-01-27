@@ -66,7 +66,7 @@ describe('render', function () {
     }).catch(done)
   })
 
-  it('should call listeners in render', function (done) {
+  it('should call listeners in render', function () {
     var listenersCall = []
     reporter.beforeRenderListeners.add('test', this, function () {
       listenersCall.push('before')
@@ -89,8 +89,7 @@ describe('render', function () {
       listenersCall[1].should.be.eql('validateRender')
       listenersCall[2].should.be.eql('afterTemplatingEnginesExecuted')
       listenersCall[3].should.be.eql('after')
-      done()
-    }).catch(done)
+    })
   })
 
   it('should call renderErrorListeners', function (done) {
