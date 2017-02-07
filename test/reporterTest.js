@@ -1,8 +1,74 @@
 var core = require('../index.js')
 var path = require('path')
+var stdMocks = require('std-mocks')
 var should = require('should')
 
 describe('reporter', function () {
+  it('should not log to console by default', function (done) {
+    var reporter = core({ discover: false })
+
+    stdMocks.use({ print: true })
+
+    reporter.init().then(function () {
+      return reporter.render({
+        template: {
+          content: 'Hey',
+          engine: 'none',
+          recipe: 'html'
+        }
+      }).then(function () {
+        var stdoutContent
+
+        stdMocks.restore()
+
+        stdoutContent = stdMocks.flush()
+
+        stdoutContent.stdout.length.should.be.eql(0)
+        done()
+      })
+    }).catch(function (err) {
+      stdMocks.restore()
+
+      done(err)
+    })
+  })
+
+  it('should silent logs', function (done) {
+    var reporter = core({ discover: false, logger: { silent: true } })
+
+    stdMocks.use({ print: true })
+
+    reporter.init().then(function () {
+      return reporter.render({
+        template: {
+          content: 'Hey',
+          engine: 'none',
+          recipe: 'html'
+        }
+      }).then(function () {
+        var stdoutContent
+
+        stdMocks.restore()
+
+        stdoutContent = stdMocks.flush()
+
+        stdoutContent.stdout.length.should.be.eql(0)
+
+        var allTransportsAreSilent = Object.keys(reporter.logger.transports).every(function (transportName) {
+          return reporter.logger.transports[transportName].silent === true
+        })
+
+        allTransportsAreSilent.should.be.eql(true)
+
+        done()
+      })
+    }).catch(function (err) {
+      stdMocks.restore()
+
+      done(err)
+    })
+  })
+
   it('should be able to render html without any extension applied using promises', function (done) {
     var reporter = core({ discover: false })
 
@@ -170,4 +236,3 @@ describe('reporter', function () {
     }).catch(done)
   })
 })
-
