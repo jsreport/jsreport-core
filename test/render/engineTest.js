@@ -475,7 +475,7 @@ describe('engine', function () {
       })
     })
 
-    it.only('should terminate endless loop after timeout', function (done) {
+    it('should terminate endless loop after timeout', function (done) {
       engine({
         template: {
           content: '',
