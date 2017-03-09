@@ -124,4 +124,3 @@ describe('render', function () {
     }).catch(done)
   })
 })
-

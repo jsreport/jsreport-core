@@ -474,6 +474,25 @@ describe('engine', function () {
         done()
       })
     })
+
+    it.only('should terminate endless loop after timeout', function (done) {
+      engine({
+        template: {
+          content: '',
+          helpers: 'function a() { while(true) {} }'
+        },
+        tasks: { templateCache: { enabled: false }, modules: [], nativeModules: [], allowedModules: [], timeout: 500 },
+        engine: path.join(__dirname, 'helpersEngine.js')
+      }, function () {
+      }, function (err, res) {
+        if (err) {
+          err.message.should.containEql('time')
+          return done()
+        }
+
+        done(new Error('Should have failed'))
+      })
+    })
   }
 })
 
