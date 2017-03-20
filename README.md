@@ -9,7 +9,7 @@ Full distribution can be found in [jsreport/jsreport](https://github.com/jsrepor
 
 `jsreport-core` contains the jsreport rendering core which is useless alone. It is up to you which extensions from the [long list](#list-of-extensions) you additionally apply and which document printing techniques you use.
 
-##Quick example
+## Quick example
 
 To generate a document using jsreport you always need a javascript templating engine. The **engine** is used to dynamically assemble the document based on the input values. For start lets pick [jsreport-jsrender](https://github.com/jsreport/jsreport-jsrender) engine from the [list](#engines) and install it using npm.
 
@@ -43,7 +43,7 @@ jsreport.init().then(function () {
 })
 ```
 
-##Render
+## Render
 `render` is the main method which invokes report generation. The only parameter is an object representing rendering request. The request has following structure:
 ```js
 {
@@ -81,7 +81,7 @@ The render returns promise with the single response value
 
 The convention is that jsreport repository extension  starts with `jsreport-xxx`, but the extension real name and also the recipes or engines it registers excludes the `jsreport-` prefix. This means if you install extension `jsreport-handlebars` the engine's name you specify in the render should be `handlebars`.
 
-###Native helpers
+### Native helpers
 By default you need to send helpers to the template in the string. This is because jsreport runs the template rendering by default in the external process to avoid freezing the application when there is an endless loop or other critical error in the helper. If you want to use your local functions for the helpers you need to switch rendering strategy to `in-process`.
 ```js
 var jsreport = require('jsreport-core')(
@@ -99,7 +99,7 @@ jsreport.init().then(function() {
 })
 ```
 
-###Require in the helpers
+### Require in the helpers
 jsreport by default runs helpers in the sandbox where is the `require` function blocked. To unblock particular modules or local scripts you need to configure `tasks.allowedModules` option.
 
 ```js
@@ -142,7 +142,7 @@ The following variables are available in the global scope:
 
 
 
-##Extensions
+## Extensions
 As you see in the first example. Even for the simplest pdf printing you need to install additional packages(extensions).  This is the philosophy of jsreport and you will need to install additional extensions very often. There are not just extensions adding support for a particular templating engine or printing technique. There are many extensions adding support for persisting templates, dynamic script evaluation or even visual html designer and API. To get the idea of the whole platform you can install the full [jsreport](http://jsreport.net/) distribution and pick what you like. Then you can go back to `jsreport-core` and install extensions you need.
 
 You are also welcome to write your own extension or even publish it to the community. See the following articles how to get started.
@@ -151,7 +151,7 @@ You are also welcome to write your own extension or even publish it to the commu
 - [Implementing custom jsreport recipe](http://jsreport.net/learn/custom-recipe)
 - [Implementing custom jsreport engine](http://jsreport.net/learn/custom-engine)
 
-##Extensions auto discovery
+## Extensions auto discovery
 
 jsreport by default auto discovers extensions in the application's directory tree. This means jsreport by default searches for files `jsreport.config.js` which describes the extensions and applies all the extensions that are found.
 
@@ -164,7 +164,7 @@ jsreport.use(require('jsreport-jsrender')())
 jsreport.init()
 ```
 
-##Configuration
+## Configuration
 
 jsreport accepts options as the first parameter. The core options are the following:
 ```js
@@ -215,7 +215,7 @@ require('jsreport-core')({
 ```
 You can find configuration notes for the full jsreport distribution [here](http://jsreport.net/learn/configuration).
 
-##Logging
+## Logging
 jsreport leverages [winston](https://github.com/winstonjs/winston) logging abstraction together with [debug](https://github.com/visionmedia/debug) utility. To output logs in the console just simply set the `DEBUG` environment variable
 ```bash
 DEBUG=jsreport node app.js
@@ -233,7 +233,7 @@ var jsreport = require('jsreport-core')()
 jsreport.logger.add(winston.transports.Console, { level: 'info' })
 ```
 
-##Listeners
+## Listeners
 jsreport extensions are mainly using the system of event listeners to adapt the rendering process. Extension can for example listen to event which is called before the rendering process starts and adapt the input values.
 
 ```js
@@ -257,10 +257,10 @@ jsreport currently support these main listeners
 - `renderErrorListeners(req, res, err)` - fired when there is error somewhere in the rendering pipeline
 
 
-##Studio
+## Studio
 jsreport includes also visual html studio and rest API. This is provided through [jsreport-express](https://github.com/jsreport/jsreport-express) extension. See its documentation for details.
 
-##Template store
+## Template store
 `jsreport-core` includes API for persisting and accessing report templates. This API is then used by extensions mainly in combination with jsreport [studio](#studio). `jsreport-core` implements just in-memory persistence, but you can add other persistence methods through extensions. See the [list](#store-providers).
 
 The persistence API is almost compatible to mongodb API:
@@ -281,22 +281,22 @@ jsreport.documentStore.collection('templates')
 	.remove({name: 'test'})
 	.then(function(res) {})
 ```
-##List of extensions
+## List of extensions
 
-###Store providers
+### Store providers
 - [jsreport-fs-store](https://github.com/jsreport/jsreport-fs-store)
 - [jsreport-mongodb-store](https://github.com/jsreport/jsreport-mongodb-store)
 - [jsreport-embedded-store](https://github.com/jsreport/jsreport-embedded-store)
 - [jsreport-mssql-store](https://github.com/jsreport/jsreport-mssql-store)
 - [jsreport-postgres-store](https://github.com/jsreport/jsreport-postgres-store)
 
-###Engines
+### Engines
 - [jsreport-jsrender](https://github.com/jsreport/jsreport-jsrender)
 - [jsreport-handlebars](https://github.com/jsreport/jsreport-handlebars)
 - [jsreport-ejs](https://github.com/jsreport/jsreport-ejs)
 - [jsreport-jade](https://github.com/bjrmatos/jsreport-jade)
 
-###Recipes
+### Recipes
 - [jsreport-phantom-pdf](https://github.com/jsreport/jsreport-phantom-pdf)
 - [jsreport-electron-pdf](https://github.com/bjrmatos/jsreport-electron-pdf)
 - [jsreport-text](https://github.com/jsreport/jsreport-text)
@@ -309,7 +309,7 @@ jsreport.documentStore.collection('templates')
 - [jsreport-wrapped-html](https://github.com/jsreport/jsreport-embedding)
 - [jsreport-wkhtmltopdf](https://github.com/jsreport/jsreport-wkhtmltopdf)
 
-###Misc
+### Misc
 
 - [jsreport-express (studio)](https://github.com/jsreport/jsreport-express)
 - [jsreport-templates](https://github.com/jsreport/jsreport-templates)
@@ -330,8 +330,8 @@ jsreport.documentStore.collection('templates')
 - [jsreport-freeze](https://github.com/jsreport/jsreport-freeze)
 - [jsreport-debug](https://github.com/jsreport/jsreport-debug)
 
-###Blob storages
+### Blob storages
 - [jsreport-azure-storage](https://github.com/jsreport/jsreport-azure-storage)
 
-##License
+## License
 LGPL
