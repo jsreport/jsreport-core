@@ -22,7 +22,7 @@
     "nedb": "1.8.0",
     "node.extend": "1.1.6",
     "reap": "0.1.0",
-    "script-manager": "0.5.10",
+    "script-manager": "0.5.11",
     "streamifier": "0.1.1",
     "underscore": "1.8.3",
     "winston": "2.3.1"
