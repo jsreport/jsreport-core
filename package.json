@@ -29,11 +29,11 @@
   },
   "description": "javascript based business reporting",
   "devDependencies": {
-    "eslint": "3.14.1",
+    "eslint": "3.19.0",
     "eslint-config-standard": "6.2.1",
-    "eslint-config-standard-react": "4.2.0",
+    "eslint-config-standard-react": "4.3.0",
     "mocha": "3.2.0",
-    "should": "11.2.0",
+    "should": "11.2.1",
     "standard": "8.6.0",
     "std-mocks": "1.0.1"
   },
