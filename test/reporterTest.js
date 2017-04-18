@@ -1,9 +1,19 @@
 var core = require('../index.js')
 var path = require('path')
+var winston = require('winston')
 var stdMocks = require('std-mocks')
 var should = require('should')
 
 describe('reporter', function () {
+  beforeEach(function () {
+    // cleaning transports for each each test
+    if (winston.loggers.has('jsreport')) {
+      Object.keys(winston.loggers.get('jsreport').transports).forEach(function (transpName) {
+        winston.loggers.get('jsreport').remove(transpName)
+      })
+    }
+  })
+
   it('should not log to console by default', function (done) {
     var reporter = core({ discover: false })
 
@@ -66,6 +76,81 @@ describe('reporter', function () {
       stdMocks.restore()
 
       done(err)
+    })
+  })
+
+  it('should have Debug transport for logs enabled by default', function () {
+    var reporter = core({ discover: false })
+
+    return reporter.init().then(function () {
+      reporter.logger.transports.debug.should.be.not.Undefined()
+    })
+  })
+
+  it('should fail to configure custom transport that do not have minimal options', function () {
+    var reporter = core({
+      discover: false,
+      logger: {
+        console: { transport: 'console' }
+      }
+    })
+
+    var init = reporter.init()
+
+    should(init).be.rejectedWith(/option "level" is not specified/)
+  })
+
+  it('should not load disabled transports for logs', function () {
+    var reporter = core({
+      discover: false,
+      logger: {
+        console: { transport: 'console', level: 'debug' },
+        memory: { transport: 'memory', level: 'debug', enabled: false }
+      }
+    })
+
+    return reporter.init().then(function () {
+      reporter.logger.transports.console.should.be.not.Undefined()
+      should(reporter.logger.transports.memory).be.Undefined()
+    })
+  })
+
+  it('should configure custom transports for logs correctly', function () {
+    var reporter = core({
+      discover: false,
+      logger: {
+        console: { transport: 'console', level: 'debug' },
+        memory: { transport: 'memory', level: 'debug' }
+      }
+    })
+
+    return reporter.init().then(function () {
+      reporter.logger.transports.console.should.be.not.Undefined()
+      reporter.logger.transports.memory.should.be.not.Undefined()
+    })
+  })
+
+  it('should configure custom transport that uses external module for logs correctly', function () {
+    var reporter = core({
+      discover: false,
+      logger: {
+        loggly: {
+          module: 'winston-loggly',
+          transport: 'Loggly',
+          level: 'info',
+          silent: true,
+          subdomain: 'test',
+          inputToken: 'really-long-token-you-got-from-loggly',
+          auth: {
+            username: 'your-username',
+            password: 'your-password'
+          }
+        }
+      }
+    })
+
+    return reporter.init().then(function () {
+      reporter.logger.transports.loggly.should.be.not.Undefined()
     })
   })
 
