@@ -200,9 +200,10 @@ require('jsreport-core')({
 `jsreport-core` is also able to load configuration from other sources including configuration file, environment variables and command line parameters. This can be opted in through option `loadConfig:true`. If this option is set to true the configuration is merged from the following sources in the particular order:
 
 1. configuration file prod.config.json or dev.config.json based on the NODE_ENV
-2. command line arguments
-3. process environment variables
-4. options passed directly to `require('jsreport')({})`
+2. configuration file jsreport.config.json if previous file not found
+3. command line arguments
+4. process environment variables
+5. options passed directly to `require('jsreport')({})`
 
 Options with the name corresponding to the extension's name are forwarded to the particular extension. This is the common way how to globally configure all extensions at one place.
 ```js

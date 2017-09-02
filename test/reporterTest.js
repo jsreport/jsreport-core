@@ -3,6 +3,7 @@ var path = require('path')
 var winston = require('winston')
 var stdMocks = require('std-mocks')
 var should = require('should')
+var fs = require('fs')
 
 describe('reporter', function () {
   beforeEach(function () {
@@ -12,6 +13,18 @@ describe('reporter', function () {
         winston.loggers.get('jsreport').remove(transpName)
       })
     }
+
+    function safeUnlink (p) {
+      try {
+        fs.unlinkSync(p)
+      } catch (e) {
+
+      }
+    }
+
+    safeUnlink(path.join(__dirname, 'prod.config.json'))
+    safeUnlink(path.join(__dirname, 'dev.config.json'))
+    safeUnlink(path.join(__dirname, 'jsreport.config.json'))
   })
 
   it('should not log to console by default', function (done) {
@@ -207,7 +220,8 @@ describe('reporter', function () {
     }).catch(done)
   })
 
-  it('should parse dev.config.json when loadConfig', function (done) {
+  it('should parse dev.config.json when loadConfig and NODE_ENV=development', function (done) {
+    fs.writeFileSync(path.join(__dirname, 'dev.config.json'), JSON.stringify({ test: 'dev' }))
     process.env.NODE_ENV = 'development'
     var reporter = core({
       rootDirectory: path.join(__dirname),
@@ -215,12 +229,13 @@ describe('reporter', function () {
     })
 
     reporter.init().then(function () {
-      reporter.options.httpPort.should.be.eql(2000)
+      reporter.options.test.should.be.eql('dev')
       done()
     }).catch(done)
   })
 
-  it('should parse prod.config.json when loadConfig', function (done) {
+  it('should parse prod.config.json when loadConfig and NODE_ENV=production', function (done) {
+    fs.writeFileSync(path.join(__dirname, 'prod.config.json'), JSON.stringify({ test: 'prod' }))
     process.env.NODE_ENV = 'production'
     var reporter = core({
       rootDirectory: path.join(__dirname),
@@ -228,7 +243,35 @@ describe('reporter', function () {
     })
 
     reporter.init().then(function () {
-      reporter.options.httpPort.should.be.eql(3000)
+      reporter.options.test.should.be.eql('prod')
+      done()
+    }).catch(done)
+  })
+
+  it('should parse jsreport.config.json when loadConfig and no ENV config files exist', function (done) {
+    fs.writeFileSync(path.join(__dirname, 'jsreport.config.json'), JSON.stringify({ test: 'jsreport' }))
+    var reporter = core({
+      rootDirectory: path.join(__dirname),
+      loadConfig: true
+    })
+
+    reporter.init().then(function () {
+      reporter.options.test.should.be.eql('jsreport')
+      done()
+    }).catch(done)
+  })
+
+  it('should parse config with priority to ENV based file when loadConfig', function (done) {
+    process.env.NODE_ENV = null
+    fs.writeFileSync(path.join(__dirname, 'dev.config.json'), JSON.stringify({ test: 'dev' }))
+    fs.writeFileSync(path.join(__dirname, 'jsreport.config.json'), JSON.stringify({ test: 'jsreport' }))
+    var reporter = core({
+      rootDirectory: path.join(__dirname),
+      loadConfig: true
+    })
+
+    reporter.init().then(function () {
+      reporter.options.test.should.be.eql('dev')
       done()
     }).catch(done)
   })
