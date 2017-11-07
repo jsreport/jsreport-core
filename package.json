@@ -7,7 +7,7 @@
     "name": "Jan Blaha"
   },
   "scripts": {
-    "test": "mocha --recursive test --exit && standard",
+    "test": "mocha --timeout 5000 --recursive test --exit && standard",
     "test:watch": "mocha --watch --recursive test"
   },
   "dependencies": {

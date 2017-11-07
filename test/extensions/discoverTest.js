@@ -9,7 +9,7 @@ describe('discover', function () {
   beforeEach(function (done) {
     config = {
       logger: new Logger(),
-      tempDirectory: os.tmpdir(),
+      tempCoreDirectory: os.tmpdir(),
       rootDirectory: __dirname
     }
     done()
