@@ -4,6 +4,7 @@ var winston = require('winston')
 var stdMocks = require('std-mocks')
 var should = require('should')
 var fs = require('fs')
+var Buffer = require('safe-buffer').Buffer
 
 describe('reporter', function () {
   beforeEach(function () {
@@ -345,7 +346,7 @@ describe('reporter', function () {
 
     reporter.init().then(function () {
       extensionInitialized.should.be.eql(true)
-      reporter.testExtensionInitialized.should.be.ok
+      reporter.testExtensionInitialized.should.be.ok()
       done()
     }).catch(done)
   })

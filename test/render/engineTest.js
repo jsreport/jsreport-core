@@ -117,7 +117,7 @@ describe('engine', function () {
             return done(err)
           }
 
-          res.isFromCache.should.be.ok
+          res.isFromCache.should.be.ok()
           res.content.should.be.eql('content')
           done()
         })
@@ -495,4 +495,3 @@ describe('engine', function () {
     })
   }
 })
-

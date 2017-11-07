@@ -3,7 +3,8 @@ var path = require('path')
 var fs = require('fs')
 var util = require('../../lib/util/util.js')
 var FileSystem = require('../../lib/blobStorage/fileSystemBlobStorage.js')
-var tmpDir = require('os').tmpDir()
+var Buffer = require('safe-buffer').Buffer
+var tmpDir = require('os').tmpdir()
 var Readable = require('stream').Readable
 
 describe('fileSystemBlobStorage', function () {

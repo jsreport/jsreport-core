@@ -1,4 +1,5 @@
 var assert = require('assert')
+var Buffer = require('safe-buffer').Buffer
 var InMemoryBlobStorage = require('../../lib/blobStorage/inMemoryBlobStorage.js')
 
 describe('inMemoryBlobStorage', function () {
@@ -23,4 +24,3 @@ describe('inMemoryBlobStorage', function () {
     })
   })
 })
-

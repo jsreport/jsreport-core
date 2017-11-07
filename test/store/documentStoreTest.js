@@ -26,7 +26,7 @@ describe('document store', function () {
   it('insert should not fail', function (done) {
     documentStore.collection('users').insert({test: 'foo'})
       .then(function (doc) {
-        doc._id.should.be.ok
+        doc._id.should.be.ok()
         done()
       }).catch(done)
   })
