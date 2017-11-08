@@ -26,6 +26,7 @@ describe('reporter', function () {
     safeUnlink(path.join(__dirname, 'prod.config.json'))
     safeUnlink(path.join(__dirname, 'dev.config.json'))
     safeUnlink(path.join(__dirname, 'jsreport.config.json'))
+    safeUnlink(path.join(__dirname, 'custom.config.json'))
   })
 
   it('should not log to console by default', function (done) {
@@ -275,6 +276,51 @@ describe('reporter', function () {
       reporter.options.test.should.be.eql('dev')
       done()
     }).catch(done)
+  })
+
+  it('should parse config from absolute configFile option when loadConfig', function (done) {
+    fs.writeFileSync(path.join(__dirname, 'custom.config.json'), JSON.stringify({ test: 'custom' }))
+    var reporter = core({
+      rootDirectory: path.join(__dirname),
+      configFile: path.join(__dirname, 'custom.config.json'),
+      loadConfig: true
+    })
+
+    reporter.init().then(function () {
+      reporter.options.test.should.be.eql('custom')
+      done()
+    }).catch(done)
+  })
+
+  it('should parse config with priority to configFile option when loadConfig', function (done) {
+    fs.writeFileSync(path.join(__dirname, 'custom.config.json'), JSON.stringify({ test: 'custom' }))
+    fs.writeFileSync(path.join(__dirname, 'jsreport.config.json'), JSON.stringify({ test: 'jsreport' }))
+    var reporter = core({
+      rootDirectory: path.join(__dirname),
+      configFile: 'custom.config.json',
+      loadConfig: true
+    })
+
+    reporter.init().then(function () {
+      reporter.options.test.should.be.eql('custom')
+      done()
+    }).catch(done)
+  })
+
+  it('should throw when configFile not found and loadConfig', function (done) {
+    var reporter = core({
+      rootDirectory: path.join(__dirname),
+      configFile: 'custom.config.json',
+      loadConfig: true
+    })
+
+    reporter.init().then(function () {
+      reporter.options.test.should.be.eql('custom')
+      done(new Error('should have failed'))
+    }).catch(function (err) {
+      err.toString().should.containEql('custom.config.json')
+      done()
+    })
   })
 
   it('should parse env options into reporter options when loadConfig', function (done) {
