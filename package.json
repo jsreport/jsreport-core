@@ -29,6 +29,7 @@
   },
   "description": "javascript based business reporting",
   "devDependencies": {
+    "@types/node": "latest",
     "eslint": "4.10.0",
     "eslint-config-standard": "10.2.1",
     "eslint-config-standard-react": "5.0.0",

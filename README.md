@@ -43,6 +43,34 @@ jsreport.init().then(function () {
 })
 ```
 
+typescript:
+
+
+```ts
+import * as JsReporterCore from 'jsreport-core';
+
+async function main() {
+	try {
+		const jsreport = JsReporterCore();
+		await jsreport.init();
+		const resp = await jsreport.render({
+			template: {
+				content: '<h1>Hello {{:foo}}</h1>',
+				engine: 'jsrender',
+				recipe: 'phantom-pdf'
+			},
+			data: {
+				foo: "world"
+			}
+		});
+		console.log(resp.content.toString());
+	} catch(e) {
+		console.log(e);
+	}
+}
+
+```
+
 ## Render
 `render` is the main method which invokes report generation. The only parameter is an object representing rendering request. The request has following structure:
 ```js
@@ -91,7 +119,7 @@ jsreport.init().then(function() {
  return  jsreport.render({
 	   template: {
 		   content: '<h1>Hello {{:~foo())}}</h1>',
-		   helpers: { foo: function() { }
+		   helpers: { foo: function() { } },
 		   engine: 'jsrender',
 		   recipe: 'phantom-pdf'
 		}
