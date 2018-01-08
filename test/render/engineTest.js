@@ -493,5 +493,24 @@ describe('engine', function () {
         done(new Error('Should have failed'))
       })
     })
+
+    it('should be able to reach buffer in global scope', function (done) {
+      engine({
+        template: {
+          content: '',
+          helpers: 'function a() { return typeof Buffer; }'
+        },
+        tasks: { templateCache: { enabled: false }, modules: [], nativeModules: [], allowedModules: [] },
+        engine: path.join(__dirname, 'helpersEngine.js')
+      }, function () {
+      }, function (err, res) {
+        if (err) {
+          return done(err)
+        }
+
+        res.content.should.be.eql('function')
+        done()
+      })
+    })
   }
 })
