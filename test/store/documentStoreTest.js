@@ -5,7 +5,7 @@ describe('document store', function () {
   var documentStore
 
   beforeEach(function (done) {
-    documentStore = new DocumentStore({
+    documentStore = DocumentStore({
       connectionString: {name: 'memory'},
       logger: new (require('..//util/testLogger.js'))()
     })

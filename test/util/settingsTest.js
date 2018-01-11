@@ -9,7 +9,7 @@ describe('Settings', function () {
 
     self.settings = new Settings()
 
-    self.documentStore = new DocumentStore({
+    self.documentStore = DocumentStore({
       connectionString: { name: 'memory', inMemory: true },
       dataDirectory: 'data',
       logger: new (require('..//util/testLogger.js'))()
@@ -17,12 +17,8 @@ describe('Settings', function () {
     self.settings.registerEntity(self.documentStore)
 
     self.documentStore.init().then(function () {
-      return self.documentStore.drop().then(function () {
-        return self.documentStore.init().then(function () {
-          return self.settings.init(self.documentStore).then(function () {
-            done()
-          })
-        })
+      return self.settings.init(self.documentStore).then(function () {
+        done()
       })
     }).catch(done)
   })
