@@ -291,10 +291,10 @@ describe('engine', function () {
       engine({
         template: {
           content: '',
-          helpers: 'function a() { return _.isArray([]); }'
+          helpers: 'function a() { return bluebird.resolve(1) }'
         },
         engine: path.join(__dirname, 'helpersEngine.js'),
-        tasks: { templateCache: { enabled: false }, nativeModules: [{ globalVariableName: '_', module: 'underscore' }] }
+        tasks: { templateCache: { enabled: false }, nativeModules: [{ globalVariableName: 'bluebird', module: 'bluebird' }] }
       }, function () {
       }, function (err, res) {
         if (err) {

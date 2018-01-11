@@ -1,6 +1,5 @@
 var core = require('../../index.js')
 require('should')
-var _ = require('underscore')
 
 describe('render', function () {
   var reporter
@@ -55,7 +54,6 @@ describe('render', function () {
   })
 
   it('should add headers into the response', function (done) {
-    done = _.once(done)
     reporter.beforeRenderListeners.add('test', function (req, res) {
       if (!res.headers) {
         return done(new Error('Should add headers into response'))
