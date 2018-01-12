@@ -1,96 +1,80 @@
-var core = require('../../index.js')
+const core = require('../../index.js')
 require('should')
 
-describe('render', function () {
-  var reporter
-  beforeEach(function (done) {
+describe('render', () => {
+  let reporter
+
+  beforeEach(() => {
     reporter = core({discover: false})
-    reporter.init().then(function () {
-      done()
-    }).catch(done)
+    return reporter.init()
   })
 
-  it('should render simple none engine for html recipe', function (done) {
-    reporter.render({template: {engine: 'none', content: 'foo', recipe: 'html'}}).then(function (response) {
-      response.content.toString().should.be.eql('foo')
-      done()
-    }).catch(done)
+  it('should render simple none engine for html recipe', async () => {
+    const response = await reporter.render({template: {engine: 'none', content: 'foo', recipe: 'html'}})
+    response.content.toString().should.be.eql('foo')
   })
 
-  it('should fail when req.template.recipe not specified', function (done) {
-    reporter.render({template: {content: 'foo2', engine: 'none'}}).then(function () {
-      done(new Error('It should have failed'))
-    }).catch(function (err) {
-      err.message.should.containEql('Recipe')
-      done()
-    })
+  it('should fail when req.template.recipe not specified', async () => {
+    try {
+      await reporter.render({template: {content: 'foo2', engine: 'none'}})
+      throw new Error('It should have failed')
+    } catch (e) {
+      e.message.should.containEql('Recipe')
+    }
   })
 
-  it('should fail when req.template.engine not specified', function (done) {
-    reporter.render({template: {content: 'foo2', recipe: 'html'}}).then(function () {
-      done(new Error('It should have failed'))
-    }).catch(function (err) {
-      err.message.should.containEql('Engine')
-      done()
-    })
+  it('should fail when req.template.engine not specified', async () => {
+    try {
+      await reporter.render({template: {content: 'foo2', recipe: 'html'}})
+      throw new Error('It should have failed')
+    } catch (e) {
+      e.message.should.containEql('Engine')
+    }
   })
 
-  it('should fail when req.template.recipe not found', function (done) {
-    reporter.render({template: {content: 'foo2', engine: 'none', recipe: 'foo'}}).then(function () {
-      done(new Error('It should have failed'))
-    }).catch(function (err) {
-      err.message.should.containEql('Recipe')
-      done()
-    })
+  it('should fail when req.template.recipe not found', async () => {
+    try {
+      await reporter.render({template: {content: 'foo2', engine: 'none', recipe: 'foo'}})
+      throw new Error('It should have failed')
+    } catch (e) {
+      e.message.should.containEql('Recipe')
+    }
   })
 
-  it('should fail when req.template.engine not found', function (done) {
-    reporter.render({template: {content: 'foo2', engine: 'foo', recipe: 'html'}}).then(function () {
-      done(new Error('It should have failed'))
-    }).catch(function (err) {
-      err.message.should.containEql('Engine')
-      done()
-    })
+  it('should fail when req.template.engine not found', async () => {
+    try {
+      await reporter.render({template: {content: 'foo2', engine: 'foo', recipe: 'html'}})
+      throw new Error('It should have failed')
+    } catch (e) {
+      e.message.should.containEql('Engine')
+    }
   })
 
-  it('should add headers into the response', function (done) {
-    reporter.beforeRenderListeners.add('test', function (req, res) {
+  it('should add headers into the response', () => {
+    reporter.beforeRenderListeners.add('test', (req, res) => {
       if (!res.headers) {
-        return done(new Error('Should add headers into response'))
+        throw new Error('Should add headers into response')
       }
     })
-    reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}}).then(function (response) {
-      done()
-    }).catch(done)
+    return reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}})
   })
 
-  it('should call listeners in render', function () {
+  it('should call listeners in render', async () => {
     var listenersCall = []
-    reporter.beforeRenderListeners.add('test', this, function () {
-      listenersCall.push('before')
-    })
 
-    reporter.validateRenderListeners.add('test', this, function () {
-      listenersCall.push('validateRender')
-    })
+    reporter.beforeRenderListeners.add('test', this, () => listenersCall.push('before'))
+    reporter.validateRenderListeners.add('test', this, () => listenersCall.push('validateRender'))
+    reporter.afterTemplatingEnginesExecutedListeners.add('test', this, () => listenersCall.push('afterTemplatingEnginesExecuted'))
+    reporter.afterRenderListeners.add('test', this, () => listenersCall.push('after'))
 
-    reporter.afterTemplatingEnginesExecutedListeners.add('test', this, function () {
-      listenersCall.push('afterTemplatingEnginesExecuted')
-    })
-
-    reporter.afterRenderListeners.add('test', this, function () {
-      listenersCall.push('after')
-    })
-
-    return reporter.render({template: {content: 'Hey', engine: 'none', recipe: 'html'}}).then(function (resp) {
-      listenersCall[0].should.be.eql('before')
-      listenersCall[1].should.be.eql('validateRender')
-      listenersCall[2].should.be.eql('afterTemplatingEnginesExecuted')
-      listenersCall[3].should.be.eql('after')
-    })
+    await reporter.render({template: {content: 'Hey', engine: 'none', recipe: 'html'}})
+    listenersCall[0].should.be.eql('before')
+    listenersCall[1].should.be.eql('validateRender')
+    listenersCall[2].should.be.eql('afterTemplatingEnginesExecuted')
+    listenersCall[3].should.be.eql('after')
   })
 
-  it('should call renderErrorListeners', function (done) {
+  it('should call renderErrorListeners', async () => {
     reporter.beforeRenderListeners.add('test', function (req, res) {
       throw new Error('intentional')
     })
@@ -100,25 +84,22 @@ describe('render', function () {
       loggedError = e.message
     })
 
-    reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}}).then(function () {
-      done(new Error('it should have failed'))
-    }).catch(function () {
+    try {
+      await reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}})
+    } catch (e) {
       loggedError.should.be.eql('intentional')
-      done()
-    })
+    }
   })
 
-  it('should be able to hook to debug logs', function (done) {
+  it('should be able to hook to debug logs', async () => {
     var messages = []
-    reporter.beforeRenderListeners.add('test', function (req, res) {
+    reporter.beforeRenderListeners.add('test', (req, res) => {
       req.logger.rewriters.push(function (level, msg, meta) {
         messages.push(msg)
       })
     })
 
-    reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}}).then(function () {
-      messages.should.containEql('Executing recipe html')
-      done()
-    }).catch(done)
+    await reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}})
+    messages.should.containEql('Executing recipe html')
   })
 })

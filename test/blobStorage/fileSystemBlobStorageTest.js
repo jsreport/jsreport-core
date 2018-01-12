@@ -1,54 +1,47 @@
-var assert = require('assert')
-var path = require('path')
-var fs = require('fs')
-var util = require('../../lib/util/util.js')
-var FileSystem = require('../../lib/blobStorage/fileSystemBlobStorage.js')
-var Buffer = require('safe-buffer').Buffer
-var tmpDir = require('os').tmpdir()
-var Readable = require('stream').Readable
+const assert = require('assert')
+const path = require('path')
+const fs = require('fs')
+const util = require('../../lib/util/util.js')
+const FileSystem = require('../../lib/blobStorage/fileSystemBlobStorage.js')
+const Buffer = require('safe-buffer').Buffer
+const tmpDir = require('os').tmpdir()
+const Readable = require('stream').Readable
+const Promise = require('bluebird')
 
-describe('fileSystemBlobStorage', function () {
-  beforeEach(function () {
+describe('fileSystemBlobStorage', () => {
+  let blobStorage
+
+  beforeEach(() => {
     util.deleteFiles(path.join(tmpDir, 'test-output'))
 
     if (!fs.existsSync(path.join(tmpDir, 'test-output'))) {
       fs.mkdirSync(path.join(tmpDir, 'test-output'))
     }
 
-    this.blobStorage = new FileSystem({dataDirectory: path.join(tmpDir, 'test-output')})
+    blobStorage = Promise.promisifyAll(new FileSystem({dataDirectory: path.join(tmpDir, 'test-output')}))
   })
 
-  afterEach(function () {
-  })
-
-  it('write and read should result into equal string', function (done) {
-    var self = this
-
-    var ms = new Readable()
+  it('write and read should result into equal string', async () => {
+    const ms = new Readable()
     ms.push('Hey')
     ms.push(null)
 
-    var blobName = 'blobname'
+    const blobName = 'blobname'
 
-    self.blobStorage.write(blobName, new Buffer('Hula'), function (err) {
-      if (err) {
-        return done(err)
-      }
+    await blobStorage.writeAsync(blobName, new Buffer('Hula'))
 
-      self.blobStorage.read(blobName, function (er, stream) {
-        if (err) {
-          return done(err)
-        }
+    const stream = await blobStorage.readAsync(blobName)
 
-        var content = ''
-        stream.resume()
-        stream.on('data', function (buf) {
-          content += buf.toString()
-        })
-        stream.on('end', function () {
-          assert.equal('Hula', content)
-          done()
-        })
+    let content = ''
+    stream.resume()
+    stream.on('data', function (buf) {
+      content += buf.toString()
+    })
+
+    return new Promise((resolve) => {
+      stream.on('end', function () {
+        assert.equal('Hula', content)
+        resolve()
       })
     })
   })

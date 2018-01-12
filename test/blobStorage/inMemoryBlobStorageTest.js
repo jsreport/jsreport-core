@@ -1,25 +1,22 @@
-var assert = require('assert')
-var Buffer = require('safe-buffer').Buffer
-var InMemoryBlobStorage = require('../../lib/blobStorage/inMemoryBlobStorage.js')
+require('should')
+const Promise = require('bluebird')
+const InMemoryBlobStorage = require('../../lib/blobStorage/inMemoryBlobStorage.js')
 
 describe('inMemoryBlobStorage', function () {
-  it('write and read should result into equal string', function (done) {
-    var blobStorage = new InMemoryBlobStorage({})
+  it('write and read should result into equal string', async () => {
+    const blobStorage = Promise.promisifyAll(new InMemoryBlobStorage({}))
 
-    blobStorage.write('foo', new Buffer('Hula'), function (err) {
-      assert.ifError(err)
+    await blobStorage.writeAsync('foo', Buffer.from('Hula'))
+    const stream = await blobStorage.readAsync('foo')
 
-      blobStorage.read('foo', function (er, stream) {
-        assert.ifError(er)
-
-        var content = ''
-        stream.on('data', function (buf) {
-          content += buf.toString()
-        })
-        stream.on('end', function () {
-          assert.equal(content, 'Hula')
-          done()
-        })
+    let content = ''
+    stream.on('data', function (buf) {
+      content += buf.toString()
+    })
+    return new Promise((resolve) => {
+      stream.on('end', () => {
+        content.should.be.eql('Hula')
+        resolve()
       })
     })
   })

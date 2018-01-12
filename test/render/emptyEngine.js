@@ -1,5 +1,1 @@
-module.exports = function (template) {
-  return function () {
-    return template
-  }
-}
+module.exports = (template) => () => template

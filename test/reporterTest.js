@@ -1,16 +1,16 @@
-var core = require('../index.js')
-var path = require('path')
-var winston = require('winston')
-var stdMocks = require('std-mocks')
-var should = require('should')
-var fs = require('fs')
-var Buffer = require('safe-buffer').Buffer
+const core = require('../index.js')
+const path = require('path')
+const winston = require('winston')
+const stdMocks = require('std-mocks')
+const should = require('should')
+const fs = require('fs')
+const Buffer = require('safe-buffer').Buffer
 
-describe('reporter', function () {
-  beforeEach(function () {
+describe('reporter', () => {
+  beforeEach(() => {
     // cleaning transports for each each test
     if (winston.loggers.has('jsreport')) {
-      Object.keys(winston.loggers.get('jsreport').transports).forEach(function (transpName) {
+      Object.keys(winston.loggers.get('jsreport').transports).forEach((transpName) => {
         winston.loggers.get('jsreport').remove(transpName)
       })
     }
@@ -29,94 +29,69 @@ describe('reporter', function () {
     safeUnlink(path.join(__dirname, 'custom.config.json'))
   })
 
-  it('should not log to console by default', function (done) {
-    var reporter = core({ discover: false })
+  it('should not log to console by default', async () => {
+    const reporter = core({ discover: false })
+
+    stdMocks.use({ print: true })
+    await reporter.init()
+    await reporter.render({
+      template: {
+        content: 'Hey',
+        engine: 'none',
+        recipe: 'html'
+      }
+    })
+    stdMocks.restore()
+    const stdoutContent = stdMocks.flush()
+    stdoutContent.stdout.length.should.be.eql(0)
+  })
+
+  it('should silent logs', async () => {
+    const reporter = core({ discover: false, logger: { silent: true } })
 
     stdMocks.use({ print: true })
 
-    reporter.init().then(function () {
-      return reporter.render({
-        template: {
-          content: 'Hey',
-          engine: 'none',
-          recipe: 'html'
-        }
-      }).then(function () {
-        var stdoutContent
-
-        stdMocks.restore()
-
-        stdoutContent = stdMocks.flush()
-
-        stdoutContent.stdout.length.should.be.eql(0)
-        done()
-      })
-    }).catch(function (err) {
-      stdMocks.restore()
-
-      done(err)
+    await reporter.init()
+    await reporter.render({
+      template: {
+        content: 'Hey',
+        engine: 'none',
+        recipe: 'html'
+      }
     })
+    stdMocks.restore()
+    let stdoutContent = stdMocks.flush()
+    stdoutContent.stdout.length.should.be.eql(0)
+
+    const allTransportsAreSilent = Object.keys(reporter.logger.transports).every(function (transportName) {
+      return reporter.logger.transports[transportName].silent === true
+    })
+
+    allTransportsAreSilent.should.be.eql(true)
   })
 
-  it('should silent logs', function (done) {
-    var reporter = core({ discover: false, logger: { silent: true } })
+  it('should have Debug transport for logs enabled by default', async () => {
+    const reporter = core({ discover: false })
 
-    stdMocks.use({ print: true })
-
-    reporter.init().then(function () {
-      return reporter.render({
-        template: {
-          content: 'Hey',
-          engine: 'none',
-          recipe: 'html'
-        }
-      }).then(function () {
-        var stdoutContent
-
-        stdMocks.restore()
-
-        stdoutContent = stdMocks.flush()
-
-        stdoutContent.stdout.length.should.be.eql(0)
-
-        var allTransportsAreSilent = Object.keys(reporter.logger.transports).every(function (transportName) {
-          return reporter.logger.transports[transportName].silent === true
-        })
-
-        allTransportsAreSilent.should.be.eql(true)
-
-        done()
-      })
-    }).catch(function (err) {
-      stdMocks.restore()
-
-      done(err)
-    })
+    await reporter.init()
+    reporter.logger.transports.debug.should.be.not.Undefined()
   })
 
-  it('should have Debug transport for logs enabled by default', function () {
-    var reporter = core({ discover: false })
-
-    return reporter.init().then(function () {
-      reporter.logger.transports.debug.should.be.not.Undefined()
-    })
-  })
-
-  it('should fail to configure custom transport that do not have minimal options', function () {
-    var reporter = core({
+  it('should fail to configure custom transport that do not have minimal options', () => {
+    const reporter = core({
       discover: false,
       logger: {
         console: { transport: 'console' }
       }
     })
 
-    var init = reporter.init()
+    const init = reporter.init()
 
     should(init).be.rejectedWith(/option "level" is not specified/)
   })
 
-  it('should not load disabled transports for logs', function () {
-    var reporter = core({
+  it('should not load disabled transports for logs', async () => {
+    const reporter = core({
       discover: false,
       logger: {
         console: { transport: 'console', level: 'debug' },
@@ -124,14 +99,13 @@ describe('reporter', function () {
       }
     })
 
-    return reporter.init().then(function () {
-      reporter.logger.transports.console.should.be.not.Undefined()
-      should(reporter.logger.transports.memory).be.Undefined()
-    })
+    await reporter.init()
+    reporter.logger.transports.console.should.be.not.Undefined()
+    should(reporter.logger.transports.memory).be.Undefined()
   })
 
-  it('should configure custom transports for logs correctly', function () {
-    var reporter = core({
+  it('should configure custom transports for logs correctly', async () => {
+    const reporter = core({
       discover: false,
       logger: {
         console: { transport: 'console', level: 'debug' },
@@ -139,14 +113,13 @@ describe('reporter', function () {
       }
     })
 
-    return reporter.init().then(function () {
-      reporter.logger.transports.console.should.be.not.Undefined()
-      reporter.logger.transports.memory.should.be.not.Undefined()
-    })
+    await reporter.init()
+    reporter.logger.transports.console.should.be.not.Undefined()
+    reporter.logger.transports.memory.should.be.not.Undefined()
   })
 
-  it('should configure custom transport that uses external module for logs correctly', function () {
-    var reporter = core({
+  it('should configure custom transport that uses external module for logs correctly', async () => {
+    const reporter = core({
       discover: false,
       logger: {
         loggly: {
@@ -164,33 +137,27 @@ describe('reporter', function () {
       }
     })
 
-    return reporter.init().then(function () {
-      reporter.logger.transports.loggly.should.be.not.Undefined()
-    })
+    await reporter.init()
+    reporter.logger.transports.loggly.should.be.not.Undefined()
   })
 
-  it('should be able to render html without any extension applied using promises', function (done) {
-    var reporter = core({ discover: false })
+  it('should be able to render html without any extension applied using promises', async () => {
+    const reporter = core({ discover: false })
 
-    reporter.init().then(function () {
-      return reporter.render({ template: { content: 'Hey', engine: 'none', recipe: 'html' } }).then(function (resp) {
-        resp.content.toString().should.be.eql('Hey')
-        done()
-      })
-    }).catch(done)
+    await reporter.init()
+    const resp = await reporter.render({ template: { content: 'Hey', engine: 'none', recipe: 'html' } })
+    resp.content.toString().should.be.eql('Hey')
   })
 
-  it('should auto discover extensions when no use called', function (done) {
-    var reporter = core({ rootDirectory: __dirname, extensionsLocationCache: false })
-    reporter.init().then(function () {
-      reporter.testExtensionInitialized.should.be.eql(true)
-      done()
-    }).catch(done)
+  it('should auto discover extensions when no use called', async () => {
+    const reporter = core({ rootDirectory: __dirname, extensionsLocationCache: false })
+    await reporter.init()
+    reporter.testExtensionInitialized.should.be.eql(true)
   })
 
-  it('should be able to use custom extension', function (done) {
-    var reporter = core({ rootDirectory: path.join(__dirname) })
-    var extensionInitialized = false
+  it('should be able to use custom extension', async () => {
+    const reporter = core({ rootDirectory: path.join(__dirname) })
+    let extensionInitialized = false
     reporter.use({
       name: 'test',
       main: function (reporter, definition) {
@@ -198,15 +165,13 @@ describe('reporter', function () {
       }
     })
 
-    reporter.init().then(function () {
-      extensionInitialized.should.be.eql(true)
-      done()
-    }).catch(done)
+    await reporter.init()
+    extensionInitialized.should.be.eql(true)
   })
 
-  it('should fire initializeListeners on custom extension', function (done) {
-    var reporter = core({ rootDirectory: path.join(__dirname) })
-    var extensionInitialized = false
+  it('should fire initializeListeners on custom extension', async () => {
+    const reporter = core({ rootDirectory: path.join(__dirname) })
+    let extensionInitialized = false
     reporter.use({
       name: 'test',
       main: function (reporter, definition) {
@@ -216,99 +181,85 @@ describe('reporter', function () {
       }
     })
 
-    reporter.init().then(function () {
-      extensionInitialized.should.be.eql(true)
-      done()
-    }).catch(done)
+    await reporter.init()
+    extensionInitialized.should.be.eql(true)
   })
 
-  it('should parse dev.config.json when loadConfig and NODE_ENV=development', function (done) {
+  it('should parse dev.config.json when loadConfig and NODE_ENV=development', async () => {
     fs.writeFileSync(path.join(__dirname, 'dev.config.json'), JSON.stringify({ test: 'dev' }))
     process.env.NODE_ENV = 'development'
-    var reporter = core({
+    const reporter = core({
       rootDirectory: path.join(__dirname),
       loadConfig: true
     })
 
-    reporter.init().then(function () {
-      reporter.options.test.should.be.eql('dev')
-      done()
-    }).catch(done)
+    await reporter.init()
+    reporter.options.test.should.be.eql('dev')
   })
 
-  it('should parse prod.config.json when loadConfig and NODE_ENV=production', function (done) {
+  it('should parse prod.config.json when loadConfig and NODE_ENV=production', async () => {
     fs.writeFileSync(path.join(__dirname, 'prod.config.json'), JSON.stringify({ test: 'prod' }))
     process.env.NODE_ENV = 'production'
-    var reporter = core({
+    const reporter = core({
       rootDirectory: path.join(__dirname),
       loadConfig: true
     })
 
-    reporter.init().then(function () {
-      reporter.options.test.should.be.eql('prod')
-      done()
-    }).catch(done)
+    await reporter.init()
+    reporter.options.test.should.be.eql('prod')
   })
 
-  it('should parse jsreport.config.json when loadConfig and no ENV config files exist', function (done) {
+  it('should parse jsreport.config.json when loadConfig and no ENV config files exist', async () => {
     fs.writeFileSync(path.join(__dirname, 'jsreport.config.json'), JSON.stringify({ test: 'jsreport' }))
-    var reporter = core({
+    const reporter = core({
       rootDirectory: path.join(__dirname),
       loadConfig: true
     })
 
-    reporter.init().then(function () {
-      reporter.options.test.should.be.eql('jsreport')
-      done()
-    }).catch(done)
+    await reporter.init()
+    reporter.options.test.should.be.eql('jsreport')
   })
 
-  it('should parse config with priority to ENV based file when loadConfig', function (done) {
+  it('should parse config with priority to ENV based file when loadConfig', async () => {
     process.env.NODE_ENV = null
     fs.writeFileSync(path.join(__dirname, 'dev.config.json'), JSON.stringify({ test: 'dev' }))
     fs.writeFileSync(path.join(__dirname, 'jsreport.config.json'), JSON.stringify({ test: 'jsreport' }))
-    var reporter = core({
+    const reporter = core({
       rootDirectory: path.join(__dirname),
       loadConfig: true
     })
 
-    reporter.init().then(function () {
-      reporter.options.test.should.be.eql('dev')
-      done()
-    }).catch(done)
+    await reporter.init()
+    reporter.options.test.should.be.eql('dev')
   })
 
-  it('should parse config from absolute configFile option when loadConfig', function (done) {
+  it('should parse config from absolute configFile option when loadConfig', async () => {
     fs.writeFileSync(path.join(__dirname, 'custom.config.json'), JSON.stringify({ test: 'custom' }))
-    var reporter = core({
+    const reporter = core({
       rootDirectory: path.join(__dirname),
       configFile: path.join(__dirname, 'custom.config.json'),
       loadConfig: true
     })
 
-    reporter.init().then(function () {
-      reporter.options.test.should.be.eql('custom')
-      done()
-    }).catch(done)
+    await reporter.init()
+    reporter.options.test.should.be.eql('custom')
   })
 
-  it('should parse config with priority to configFile option when loadConfig', function (done) {
+  it('should parse config with priority to configFile option when loadConfig', async () => {
     fs.writeFileSync(path.join(__dirname, 'custom.config.json'), JSON.stringify({ test: 'custom' }))
     fs.writeFileSync(path.join(__dirname, 'jsreport.config.json'), JSON.stringify({ test: 'jsreport' }))
-    var reporter = core({
+    const reporter = core({
       rootDirectory: path.join(__dirname),
       configFile: 'custom.config.json',
       loadConfig: true
     })
 
-    reporter.init().then(function () {
-      reporter.options.test.should.be.eql('custom')
-      done()
-    }).catch(done)
+    await reporter.init()
+    reporter.options.test.should.be.eql('custom')
   })
 
-  it('should throw when configFile not found and loadConfig', function (done) {
-    var reporter = core({
+  it('should throw when configFile not found and loadConfig', (done) => {
+    const reporter = core({
       rootDirectory: path.join(__dirname),
       configFile: 'custom.config.json',
       loadConfig: true
@@ -323,65 +274,58 @@ describe('reporter', function () {
     })
   })
 
-  it('should parse env options into reporter options when loadConfig', function (done) {
+  it('should parse env options into reporter options when loadConfig', async () => {
     process.env.httpPort = 4000
     process.env.NODE_ENV = 'development'
-    var reporter = core({
+    const reporter = core({
       rootDirectory: path.join(__dirname),
       loadConfig: true
     })
 
-    reporter.init().then(function () {
-      reporter.options.httpPort.toString().should.be.eql('4000')
-      done()
-    }).catch(done)
+    await reporter.init()
+    reporter.options.httpPort.toString().should.be.eql('4000')
   })
 
-  it('should use options provided as argument  when loadConfig', function (done) {
+  it('should use options provided as argument  when loadConfig', () => {
     delete process.env.httpPort
     process.env.NODE_ENV = 'development'
-    var reporter = core({
+    const reporter = core({
       rootDirectory: path.join(__dirname),
       loadConfig: true,
       httpPort: 6000
     })
 
-    reporter.init().then(function () {
-      reporter.options.httpPort.should.be.eql(6000)
-      done()
-    }).catch(done)
+    reporter.init()
+    reporter.options.httpPort.should.be.eql(6000)
   })
 
-  it('should promisify blob storage', function (done) {
-    var reporter = core({ discover: false })
+  it('should promisify blob storage', async () => {
+    const reporter = core({ discover: false })
 
-    reporter.init().then(function () {
-      return reporter.blobStorage.write('test', new Buffer('str'), {}, {}).then(function () {
-        return reporter.blobStorage.read('test').then(function (stream) {
-          var content = ''
-          stream.on('data', function (buf) {
-            content += buf.toString()
-          })
-          stream.on('end', function () {
-            content.should.be.eql('str')
-            done()
-          })
-        })
+    await reporter.init()
+    await reporter.blobStorage.write('test', new Buffer('str'), {}, {})
+    const stream = await reporter.blobStorage.read('test')
+    let content = ''
+    return new Promise((resolve) => {
+      stream.on('data', function (buf) {
+        content += buf.toString()
       })
-    }).catch(done)
+      stream.on('end', function () {
+        content.should.be.eql('str')
+        resolve()
+      })
+    })
   })
 
-  it('should skip extension with enabled === false in config', function (done) {
-    var reporter = core({ rootDirectory: __dirname, test: { enabled: false } })
-    reporter.init().then(function () {
-      should(reporter.testExtensionInitialized).not.eql(true)
-      done()
-    }).catch(done)
+  it('should skip extension with enabled === false in config', async () => {
+    const reporter = core({ rootDirectory: __dirname, test: { enabled: false } })
+    await reporter.init()
+    should(reporter.testExtensionInitialized).not.eql(true)
   })
 
-  it('should use both discovered and used extensions if discover true', function (done) {
-    var reporter = core({ rootDirectory: path.join(__dirname) })
-    var extensionInitialized = false
+  it('should use both discovered and used extensions if discover true', async () => {
+    const reporter = core({ rootDirectory: path.join(__dirname) })
+    let extensionInitialized = false
     reporter.discover()
     reporter.use({
       name: 'foo',
@@ -390,24 +334,20 @@ describe('reporter', function () {
       }
     })
 
-    reporter.init().then(function () {
-      extensionInitialized.should.be.eql(true)
-      reporter.testExtensionInitialized.should.be.ok()
-      done()
-    }).catch(done)
+    await reporter.init()
+    extensionInitialized.should.be.eql(true)
+    reporter.testExtensionInitialized.should.be.ok()
   })
 
-  it('should accept plain functions in use', function (done) {
-    var reporter = core()
+  it('should accept plain functions in use', async () => {
+    const reporter = core()
 
-    var extensionInitialized = false
+    let extensionInitialized = false
     reporter.use(function (reporter, definition) {
       extensionInitialized = true
     })
 
-    reporter.init().then(function () {
-      extensionInitialized.should.be.eql(true)
-      done()
-    }).catch(done)
+    await reporter.init()
+    extensionInitialized.should.be.eql(true)
   })
 })

@@ -1,5 +1,1 @@
-module.exports = function (template) {
-  return function (helpers, data) {
-    return data.a.val
-  }
-}
+module.exports = (template) => (helpers, data) => data.a.val
