@@ -50,15 +50,6 @@ describe('render', () => {
     }
   })
 
-  it('should add headers into the response', () => {
-    reporter.beforeRenderListeners.add('test', (req, res) => {
-      if (!res.headers) {
-        throw new Error('Should add headers into response')
-      }
-    })
-    return reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}})
-  })
-
   it('should call listeners in render', async () => {
     var listenersCall = []
 
@@ -91,15 +82,12 @@ describe('render', () => {
     }
   })
 
-  it('should be able to hook to debug logs', async () => {
-    var messages = []
+  it('should provide logs in response meta', async () => {
     reporter.beforeRenderListeners.add('test', (req, res) => {
-      req.logger.rewriters.push(function (level, msg, meta) {
-        messages.push(msg)
-      })
+      reporter.logger.debug('foo', req)
     })
 
-    await reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}})
-    messages.should.containEql('Executing recipe html')
+    const response = await reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}})
+    response.meta.logs.find((l) => l.message === 'foo').should.be.ok()
   })
 })
