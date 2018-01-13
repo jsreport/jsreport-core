@@ -1,9 +1,8 @@
-const assert = require('assert')
+require('should')
 const path = require('path')
 const fs = require('fs')
 const util = require('../../lib/util/util.js')
 const FileSystem = require('../../lib/blobStorage/fileSystemBlobStorage.js')
-const Buffer = require('safe-buffer').Buffer
 const tmpDir = require('os').tmpdir()
 const Readable = require('stream').Readable
 const Promise = require('bluebird')
@@ -18,7 +17,7 @@ describe('fileSystemBlobStorage', () => {
       fs.mkdirSync(path.join(tmpDir, 'test-output'))
     }
 
-    blobStorage = Promise.promisifyAll(new FileSystem({dataDirectory: path.join(tmpDir, 'test-output')}))
+    blobStorage = FileSystem({dataDirectory: path.join(tmpDir, 'test-output')})
   })
 
   it('write and read should result into equal string', async () => {
@@ -28,19 +27,17 @@ describe('fileSystemBlobStorage', () => {
 
     const blobName = 'blobname'
 
-    await blobStorage.writeAsync(blobName, new Buffer('Hula'))
+    await blobStorage.write(blobName, Buffer.from('Hula'))
 
-    const stream = await blobStorage.readAsync(blobName)
+    const stream = await blobStorage.read(blobName)
 
     let content = ''
     stream.resume()
-    stream.on('data', function (buf) {
-      content += buf.toString()
-    })
+    stream.on('data', (buf) => (content += buf.toString()))
 
     return new Promise((resolve) => {
-      stream.on('end', function () {
-        assert.equal('Hula', content)
+      stream.on('end', () => {
+        content.should.be.eql('Hula')
         resolve()
       })
     })

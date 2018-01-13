@@ -25,7 +25,8 @@
     "safe-buffer": "5.1.1",
     "script-manager": "0.7.0",
     "streamifier": "0.1.1",
-    "winston": "2.4.0"
+    "winston": "2.4.0",
+    "winston-transport": "3.0.1"
   },
   "description": "javascript based business reporting",
   "devDependencies": {

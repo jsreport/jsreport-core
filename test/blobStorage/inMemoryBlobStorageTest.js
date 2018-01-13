@@ -4,15 +4,13 @@ const InMemoryBlobStorage = require('../../lib/blobStorage/inMemoryBlobStorage.j
 
 describe('inMemoryBlobStorage', function () {
   it('write and read should result into equal string', async () => {
-    const blobStorage = Promise.promisifyAll(new InMemoryBlobStorage({}))
+    const blobStorage = InMemoryBlobStorage({})
 
-    await blobStorage.writeAsync('foo', Buffer.from('Hula'))
-    const stream = await blobStorage.readAsync('foo')
+    await blobStorage.write('foo', Buffer.from('Hula'))
+    const stream = await blobStorage.read('foo')
 
     let content = ''
-    stream.on('data', function (buf) {
-      content += buf.toString()
-    })
+    stream.on('data', (buf) => (content += buf.toString()))
     return new Promise((resolve) => {
       stream.on('end', () => {
         content.should.be.eql('Hula')
