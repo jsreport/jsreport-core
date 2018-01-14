@@ -350,4 +350,22 @@ describe('reporter', () => {
     await reporter.init()
     extensionInitialized.should.be.eql(true)
   })
+
+  it('should fire closeListeners on close', async () => {
+    const reporter = core({ rootDirectory: path.join(__dirname) })
+    await reporter.init()
+    let fired = false
+    reporter.closeListeners.add('test', () => (fired = true))
+    await reporter.close()
+    fired.should.be.true()
+  })
+
+  it('should kill scripts manager on close', async () => {
+    const reporter = core({ rootDirectory: path.join(__dirname) })
+    await reporter.init()
+    let killed = false
+    reporter.scriptManager.kill = () => (killed = true)
+    await reporter.close()
+    killed.should.be.true()
+  })
 })
