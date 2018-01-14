@@ -209,24 +209,6 @@ describe('engine', () => {
       })
     })
 
-    it('should work with engine returning string instead of function', (done) => {
-      engine({
-        template: { content: '' },
-        engine: path.join(__dirname, 'oldFormatEngine.js'),
-        nativeModules: [],
-        tasks: { templateCache: { enabled: false }, modules: [], nativeModules: [], allowedModules: [] },
-        data: { 'a': { 'val': 'foo' } }
-      }, () => {
-      }, (err, res) => {
-        if (err) {
-          return done(err)
-        }
-
-        res.content.should.be.eql('foo')
-        done()
-      })
-    })
-
     it('should block not allowed modules', (done) => {
       engine({
         template: {
