@@ -299,24 +299,6 @@ describe('reporter', () => {
     reporter.options.httpPort.should.be.eql(6000)
   })
 
-  it('should promisify blob storage', async () => {
-    const reporter = core({ discover: false })
-
-    await reporter.init()
-    await reporter.blobStorage.write('test', new Buffer('str'), {}, {})
-    const stream = await reporter.blobStorage.read('test')
-    let content = ''
-    return new Promise((resolve) => {
-      stream.on('data', function (buf) {
-        content += buf.toString()
-      })
-      stream.on('end', function () {
-        content.should.be.eql('str')
-        resolve()
-      })
-    })
-  })
-
   it('should skip extension with enabled === false in config', async () => {
     const reporter = core({ rootDirectory: __dirname, test: { enabled: false } })
     await reporter.init()
