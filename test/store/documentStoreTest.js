@@ -1,5 +1,6 @@
 require('should')
 const DocumentStore = require('../../lib/store/documentStore.js')
+const Request = require('../../lib/render/request.js')
 
 describe('document store', () => {
   let store
@@ -77,7 +78,7 @@ describe('document store', () => {
     res[0].content.should.be.eql('original')
   })
 
-  it.only('skip and limit', async () => {
+  it('skip and limit', async () => {
     await store.collection('templates').insert({ name: '1' })
     await store.collection('templates').insert({ name: '3' })
     await store.collection('templates').insert({ name: '2' })
@@ -119,5 +120,11 @@ describe('document store', () => {
 
     const res = await store.collection('templates').count({})
     res.should.be.eql(1)
+  })
+
+  it('projection should not be applied when second param is request', async () => {
+    await store.collection('templates').insert({ name: 'test' })
+    const res = await store.collection('templates').find({ name: 'test' }, Request({template: {}}))
+    res[0].name.should.be.eql('test')
   })
 })
