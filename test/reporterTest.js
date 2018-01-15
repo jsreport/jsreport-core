@@ -4,7 +4,6 @@ const winston = require('winston')
 const stdMocks = require('std-mocks')
 const should = require('should')
 const fs = require('fs')
-const Buffer = require('safe-buffer').Buffer
 
 describe('reporter', () => {
   beforeEach(() => {
