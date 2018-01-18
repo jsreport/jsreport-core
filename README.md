@@ -175,8 +175,8 @@ require('jsreport-core')({
 	dataDirectory: path.join(rootDirectory, 'data').
 	//optionally specifies where the application stores temporary diles
 	tempDirectory: path.join(dataDirectory, 'temp'),
-    //options for logging
-    logger: {
+        //options for logging
+        logger: {
 		silent: false // when true, it will silence all transports defined in logger
 	},
 	//options for templating engines and other scripts execution
