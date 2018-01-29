@@ -21,7 +21,7 @@
     "nconf": "0.9.1",
     "nedb": "1.8.0",
     "node.extend": "2.0.0",
-    "reap": "0.1.0",
+    "reap2": "1.0.1",
     "safe-buffer": "5.1.1",
     "script-manager": "0.7.0",
     "streamifier": "0.1.1",
