@@ -7,90 +7,107 @@
 /// <reference types="node" />
 
 declare namespace JsReport {
-	type helpers = string | { [fun: string]: (...args: any[]) => any };
+  type Helpers = string | { [fun: string]: (...args: any[]) => any };
 
-	interface RenderOptions {
-		template: {
-			content: string;
-			engine: 'jsrender' | 'handlebars' | 'ejs' | 'jade' | string;
-			helpers?: helpers;
-			recipe: 'phantom-pdf' | 'electron-pdf' | 'text' | 'xlsx' | 'html-to-xlsx' | 'phantom-image' | 'html-to-text' | 'fop-pdf' | 'client-html' | 'wrapped-html' | 'wkhtmltopdf' | string;
-		};
-		data?: any;
-	}
+  const enum Engine {
+    None = "none"
+  }
 
-	interface Report {
-		content: Buffer;
-		stream: NodeJS.ReadableStream;
-		headers: {
-			[header: string]: string | number | boolean;
-		};
-	}
+  const enum Recipe {
+    Html = "html"
+  }
 
-	interface Request {
-		template: {
-			content: string;
-		};
-	}
+  interface Template {
+    content: string;
+    engine: Engine | string;
+    helpers: Helpers;
+    recipe: Recipe | string;
+  }
 
-	// interface Response {
-	// 	// todo
-	// }
+  interface Request {
+    template: Partial<Template>;
+    options: object
+    data: any;
+  }
 
-	type Response = any;
+  interface Response {
+    content: Buffer;
+    stream: NodeJS.ReadableStream;
+    headers: {
+      [header: string]: string | number | boolean;
+    };
+  }
 
-	interface Listener {
-		add(type: string, callback: (req: Request, res: Response, err: any) => void): void;
-	}
+  interface ListenerCollection {
+    add(
+      type: string,
+      callback: (req: Request, res: Response, err?: any) => Promise<any> | void
+    ): void;
+  } 
 
-	interface Logger {
-		add(logger: any, options?: {
-			level: 'debug' | 'info' | 'log' | 'warn' | 'error';
-		}): void;
-	}
+  interface Collection {
+    find(query: { [field: string]: any }): Promise<object[]>;
+    update(query: { [field: string]: any }, update: object, options?: object): Promise<any>;
+    remove(query: { [field: string]: any }): Promise<any>;
+    insert(obj: object): Promise<object>;
+  }
 
-	interface Collection {
-		find(query: {
-			[field: string]: any;
-		}): Promise<any>;
-	}
+  interface DocumentStore {
+    collection(name: string): Collection;
+  }
 
-	interface DocumentStore {
-		collection(options: string): Collection;
-	}
+  interface Reporter {
+    afterRenderListeners: ListenerCollection;
+    afterTemplatingEnginesExecutedListeners: ListenerCollection;
+    beforeRenderListeners: ListenerCollection;
+    documentStore: DocumentStore;
+    initializeListeners: ListenerCollection;
+    // it would be nice to add winston.LoggerInstance here
+    // however adding import winston = require('winston') breaks exported enums
+    logger: any;
+    validateRenderListeners: ListenerCollection;
+    version: string;
+    init(): Promise<Reporter>;
+    render(options: Partial<Request>): Promise<Response>;
+    use(extension: any): Reporter;
+    discover(): Reporter;
+    createListenerCollection(): ListenerCollection;
+  }
 
-	interface JsReporter {
-		afterRenderListeners: JsReport.Listener;
-		afterTemplatingEnginesExecutedListeners: JsReport.Listener;
-		beforeRenderListeners: JsReport.Listener;
-		documentStore: JsReport.DocumentStore;
-		initializeListeners: JsReport.Listener;
-		logger: JsReport.Logger;
-		validateRenderListeners: JsReport.Listener;
-		init(): Promise<void>;
-		render(options: JsReport.RenderOptions): Promise<JsReport.Report>;
-		use(extension: any): any;
-	}
+  const enum TasksStrategy {
+    DedicatedProcess = "dedicated-process",
+    HttpServer = "http-server",
+    InProcess = "in-process"
+  }
+
+  interface Configuration {
+    autoTempCleanup: boolean;
+    dataDirectory: string;
+    extensionsLocationCache: boolean;
+    loadConfig: boolean;
+    logger: {
+      silent: boolean;
+    };
+    rootDirectory: string;
+    scripts: {
+      allowedModules: string[];
+    };
+    tasks: Partial<{
+      allowedModules: string[] | string;
+      strategy: TasksStrategy;
+    }>;
+    tempDirectory: string;
+  }
+
+  // without exporting enum, it doesn't include the require('jsreport-core') in the test.js for some reason
+  // help welcome
+  export enum Foo {}
 }
 
-declare function JsReport(options?: Partial<{
-	autoTempCleanup: boolean;
-	dataDirectory: string;
-	extensionsLocationCache: boolean;
-	loadConfig: boolean;
-	logger: {
-		silent: boolean;
-	};
-	rootDirectory: string;
-	scripts: {
-		allowedModules: string[];
-	};
-	tasks: {
-		[task: string]: any;
-	};
-	tempDirectory: string;
-}>): JsReport.JsReporter;
+declare function JsReport(
+  config?: Partial<JsReport.Configuration>
+): JsReport.Reporter;
 
-declare module 'jsreport-core' {
-	export = JsReport;
+declare module "jsreport-core" {
+  export = JsReport;
 }
