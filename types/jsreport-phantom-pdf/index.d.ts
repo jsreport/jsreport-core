@@ -7,7 +7,7 @@
 /// <reference types="node" />
 
 declare namespace JsReport {
-  const enum Recipe {
+  enum Recipe {
     PhantomPdf = "phantom-pdf"
   }
 

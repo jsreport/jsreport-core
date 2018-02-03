@@ -18,18 +18,18 @@ jsreport.use(JsReportPhantomPdf());
 
 (async () => {
   await jsreport.init();
-  await jsreport.documentStore.collection('settings').update({}, {$set: { foo: 1}})
+  await jsreport.documentStore.collection('settings').update({}, { $set: { foo: 1 } })
   const res = await jsreport.render({
     template: {
       content: "<h1>{{foo}}</h1>",
       engine: JsReport.Engine.None,
-      recipe: JsReport.Recipe.PhantomPdf,       
+      recipe: JsReport.Recipe.PhantomPdf,
       phantom: {
         header: 'header',
         headerHeight: '5cm'
       }
     },
     data: { foo: "hello2" }
-  }); 
+  });
   console.log(res.content.toString());
 })();

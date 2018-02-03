@@ -9,11 +9,11 @@
 declare namespace JsReport {
   type Helpers = string | { [fun: string]: (...args: any[]) => any };
 
-  const enum Engine {
+  enum Engine {
     None = "none"
   }
 
-  const enum Recipe {
+  enum Recipe {
     Html = "html"
   }
 
@@ -43,7 +43,7 @@ declare namespace JsReport {
       type: string,
       callback: (req: Request, res: Response, err?: any) => Promise<any> | void
     ): void;
-  } 
+  }
 
   interface Collection {
     find(query: { [field: string]: any }): Promise<object[]>;
@@ -101,7 +101,7 @@ declare namespace JsReport {
 
   // without exporting enum, it doesn't include the require('jsreport-core') in the test.js for some reason
   // help welcome
-  export enum Foo {}
+  export enum Foo { }
 }
 
 declare function JsReport(
