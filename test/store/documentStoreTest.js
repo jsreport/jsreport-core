@@ -127,4 +127,16 @@ describe('document store', () => {
     const res = await store.collection('templates').find({ name: 'test' }, Request({template: {}}))
     res[0].name.should.be.eql('test')
   })
+
+  it('update should return 1 if upsert', async () => {
+    const res = await store.collection('templates').update({ name: 'test' }, { $set: { name: 'test2' } }, { upsert: true })
+    res.should.be.eql(1)
+  })
+
+  it('update should return number of updsated items', async () => {
+    await store.collection('templates').insert({ name: '1', recipe: 'a' })
+    await store.collection('templates').insert({ name: '2', recipe: 'a' })
+    const res = await store.collection('templates').update({ recipe: 'a' }, { $set: { name: 'test2' } })
+    res.should.be.eql(2)
+  })
 })
