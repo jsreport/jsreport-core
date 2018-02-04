@@ -7,8 +7,8 @@ module.exports = (storage) => {
     const stream = await storage().read('foo')
 
     let content = ''
-    stream.resume()
     stream.on('data', (buf) => (content += buf.toString()))
+    stream.resume()
 
     return new Promise((resolve) => {
       stream.on('end', () => {

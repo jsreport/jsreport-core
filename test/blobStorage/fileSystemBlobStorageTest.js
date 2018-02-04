@@ -5,7 +5,7 @@ const FileSystem = require('../../lib/blobStorage/fileSystemBlobStorage.js')
 const tmpDir = require('os').tmpdir()
 const common = require('./common.js')
 
-describe.only('fileSystemBlobStorage', () => {
+describe('fileSystemBlobStorage', () => {
   let blobStorage
 
   beforeEach(() => {

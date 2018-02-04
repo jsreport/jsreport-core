@@ -3,5 +3,8 @@ const InMemoryBlobStorage = require('../../lib/blobStorage/inMemoryBlobStorage.j
 const common = require('./common.js')
 
 describe('inMemoryBlobStorage', () => {
-  common(() => InMemoryBlobStorage({}))
+  let storage
+
+  beforeEach(() => (storage = InMemoryBlobStorage({})))
+  common(() => storage)
 })
