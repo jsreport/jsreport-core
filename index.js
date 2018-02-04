@@ -12,5 +12,6 @@ module.exports = function (options) {
 module.exports.Reporter = Reporter
 
 module.exports.tests = {
-  store: () => require('./test/store/common.js')
+  documentStore: () => require('./test/store/common.js'),
+  blobStorage: () => require('./test/blobStorage/common.js')
 }
