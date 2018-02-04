@@ -74,6 +74,7 @@
   },
   "files": [
     "lib",
-    "index.js"
+    "index.js",
+    "test/store/common.js"
   ]
 }
