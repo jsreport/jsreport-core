@@ -1,7 +1,7 @@
 import * as JsReport from "jsreport-core";
 import * as JsReportPhantomPdf from "jsreport-phantom-pdf";
-import * as fs from 'fs'
-
+import * as JsRender from "jsreport-jsrender";
+import * as fs from 'fs';
 
 const jsreport = JsReport({
   tasks: {
@@ -14,7 +14,7 @@ jsreport.beforeRenderListeners.add('test', (req, res) => {
 });
 
 jsreport.use(JsReportPhantomPdf());
-
+jsreport.use(JsRender());
 
 (async () => {
   await jsreport.init();
@@ -22,8 +22,8 @@ jsreport.use(JsReportPhantomPdf());
   const res = await jsreport.render({
     template: {
       content: "<h1>{{foo}}</h1>",
-      engine: JsReport.Engine.None,
-      recipe: JsReport.Recipe.PhantomPdf,
+      engine: JsReport.EngineType.JsRender,
+      recipe: JsReport.RecipeType.PhantomPdf,
       phantom: {
         header: 'header',
         headerHeight: '5cm'
@@ -31,5 +31,6 @@ jsreport.use(JsReportPhantomPdf());
     },
     data: { foo: "hello2" }
   });
-  console.log(res.content.toString());
+  fs.writeFileSync('./types/test/test.pdf', res.content);
+  process.exit(0);
 })();

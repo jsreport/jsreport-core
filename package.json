@@ -7,6 +7,7 @@
     "name": "Jan Blaha"
   },
   "scripts": {
+    "t": "rm -rf ./node_modules/jsreport-jsrender/index.d.ts ./node_modules/jsreport-phantom-pdf/index.d.ts ./node_modules/jsreport-core/index.d.ts && cp ./types/jsreport-core/index.d.ts ./node_modules/jsreport-core && cp ./types/jsreport-phantom-pdf/index.d.ts ./node_modules/jsreport-phantom-pdf/ && cp ./types/jsreport-jsrender/index.d.ts ./node_modules/jsreport-jsrender && ./node_modules/.bin/tsc -p ./types/test/tsconfig.json && node ./types/test/tests.js",
     "test": "mocha --timeout 5000 --recursive test --exit && standard",
     "test:watch": "mocha --watch --recursive test"
   },

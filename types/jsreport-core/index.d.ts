@@ -9,19 +9,19 @@
 declare namespace JsReport {
   type Helpers = string | { [fun: string]: (...args: any[]) => any };
 
-  enum Engine {
+  const enum EngineType {
     None = "none"
   }
 
-  enum Recipe {
+  const enum RecipeType {
     Html = "html"
   }
 
   interface Template {
     content: string;
-    engine: Engine | string;
+    engine: EngineType | string;
     helpers: Helpers;
-    recipe: Recipe | string;
+    recipe: RecipeType | string;
   }
 
   interface Request {
@@ -56,6 +56,10 @@ declare namespace JsReport {
     collection(name: string): Collection;
   }
 
+  interface Engine { }
+
+  interface Recipe { }
+
   interface Reporter {
     afterRenderListeners: ListenerCollection;
     afterTemplatingEnginesExecutedListeners: ListenerCollection;
@@ -69,7 +73,7 @@ declare namespace JsReport {
     version: string;
     init(): Promise<Reporter>;
     render(options: Partial<Request>): Promise<Response>;
-    use(extension: any): Reporter;
+    use(extension: Engine | Recipe): Reporter;
     discover(): Reporter;
     createListenerCollection(): ListenerCollection;
   }

@@ -1,35 +1,51 @@
-// Type definitions for jsreport-core 1.5
-// Project: http://jsreport.net
-// Definitions by: taoqf <https://github.com/taoqf>
-// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
-// TypeScript Version: 2.3
-
-/// <reference types="node" />
+/// <reference types='jsreport-core' />
 
 declare namespace JsReport {
-  enum Recipe {
-    PhantomPdf = "phantom-pdf"
+  const enum RecipeType {
+    PhantomPdf = 'phantom-pdf'
+  }
+
+  interface Margin {
+    left: number | string;
+    right: number | string;
+    top: number | string;
+    bottom: number | string;
   }
 
   interface Phantom {
-    header: string,
-    footer: string
+    margin: string | Margin;
+    header: string;
+    footer: string;
+    width: string;
+    height: string;
+    headerHeight: string;
+    footerHeight: string;
+    format: string;
+    orientation: 'portrait' | 'landscape';
+    blockJavaScript: 'true' | any;
+    resourceTimeout: number;
+    waitForJS: 'true' | 'false';
+    fitToPage: 'true' | 'false';
+    customPhantomJS: 'true' | 'false';
+    phantomjsVersion: string;
   }
 
   interface Template {
-    phantom: Partial<Phantom> | object
+    phantom?: Partial<Phantom>;
   }
 }
 
 declare namespace JsReportPhantomPdf {
-
+  interface Options {
+    allowLocalFilesAccess: boolean;
+    appDirectory: string;
+    defaultPhantomjsVersion: string;
+    strategy: string;
+  }
 }
 
-declare function JsReportPhantomPdf(): (
-  reporter: JsReport.Reporter,
-  definition: object
-) => any;
+declare function JsReportPhantomPdf(options?: Partial<JsReportPhantomPdf.Options>): JsReport.Recipe;
 
-declare module "jsreport-phantom-pdf" {
+declare module 'jsreport-phantom-pdf' {
   export = JsReportPhantomPdf;
 }

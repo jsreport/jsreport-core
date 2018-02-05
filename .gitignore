@@ -28,3 +28,5 @@ node_modules
 
 .idea
 test/data
+types/test/test.pdf
+types/test/tests.js
