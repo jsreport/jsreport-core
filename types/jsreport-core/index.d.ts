@@ -14,7 +14,7 @@ declare namespace JsReport {
   }
 
   const enum RecipeType {
-    Html = "html"
+    // Html = "html"
   }
 
   interface Template {

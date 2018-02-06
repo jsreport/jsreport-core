@@ -26,7 +26,8 @@ jsreport.use(JsRender());
       recipe: JsReport.RecipeType.PhantomPdf,
       phantom: {
         header: 'header',
-        headerHeight: '5cm'
+        headerHeight: '5cm',
+        orientation: 'landscape'
       }
     },
     data: { foo: "hello2" }

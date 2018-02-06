@@ -2,27 +2,27 @@
 /// <reference types='jsreport-xlsx' />
 
 declare namespace JsReport {
-  const enum RecipeType {
-    Xlsx = 'xlsx'
-  }
+	const enum RecipeType {
+		Html2Xlsx = 'html-to-xlsx'
+	}
 
-  interface Html2Xlsx {
-    shortid: string;
-  }
+	interface Html2Xlsx {
+		shortid: string;
+	}
 
-  interface Template {
-    xlsxTemplate: Partial<Html2Xlsx>;
-  }
+	interface Template {
+		xlsxTemplate: Partial<Html2Xlsx>;
+	}
 }
 
 declare namespace JsReportHtml2Xlsx {
-  interface Options extends JsReportXlsx.Options {
-    strategy: string;
-  }
+	interface Options extends JsReportXlsx.Options {
+		strategy: string;
+	}
 }
 
 declare function JsReportHtml2Xlsx(options?: Partial<JsReportHtml2Xlsx.Options>): JsReport.Recipe;
 
 declare module 'jsreport-html-to-xlsx' {
-  export = JsReportHtml2Xlsx;
+	export = JsReportHtml2Xlsx;
 }
