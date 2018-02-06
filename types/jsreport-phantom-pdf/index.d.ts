@@ -22,11 +22,11 @@ declare namespace JsReport {
     footerHeight: string;
     format: string;
     orientation: 'portrait' | 'landscape';
-    blockJavaScript: 'true' | any;
+    blockJavaScript: boolean;
     resourceTimeout: number;
-    waitForJS: 'true' | 'false';
-    fitToPage: 'true' | 'false';
-    customPhantomJS: 'true' | 'false';
+    waitForJS: boolean;
+    fitToPage: boolean;
+    customPhantomJS: boolean;
     phantomjsVersion: string;
   }
 
@@ -36,11 +36,17 @@ declare namespace JsReport {
 }
 
 declare namespace JsReportPhantomPdf {
+  const enum PhantomStrategy {
+    dedicatedProcess = 'dedicated-process',
+    phantomServer = 'phantom-server'
+  }
+
   interface Options {
     allowLocalFilesAccess: boolean;
-    appDirectory: string;
+    // appDirectory: string;
     defaultPhantomjsVersion: string;
-    strategy: string;
+    strategy: PhantomStrategy;
+    timeout: number;
   }
 }
 

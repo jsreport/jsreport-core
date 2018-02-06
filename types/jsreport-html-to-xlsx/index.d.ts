@@ -5,14 +5,6 @@ declare namespace JsReport {
 	const enum RecipeType {
 		Html2Xlsx = 'html-to-xlsx'
 	}
-
-	interface Html2Xlsx {
-		shortid: string;
-	}
-
-	interface Template {
-		xlsxTemplate: Partial<Html2Xlsx>;
-	}
 }
 
 declare namespace JsReportHtml2Xlsx {
