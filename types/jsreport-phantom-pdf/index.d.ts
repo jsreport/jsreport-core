@@ -1,7 +1,7 @@
 /// <reference types='jsreport-core' />
 
 declare namespace JsReport {
-  const enum RecipeType {
+  const enum Recipe {
     PhantomPdf = 'phantom-pdf'
   }
 
@@ -48,9 +48,13 @@ declare namespace JsReportPhantomPdf {
     strategy: PhantomStrategy;
     timeout: number;
   }
+
+  // without exporting enum, it doesn't include the require('jsreport-core') in the test.js for some reason
+  // help welcome
+  export enum Foo { }
 }
 
-declare function JsReportPhantomPdf(options?: Partial<JsReportPhantomPdf.Options>): JsReport.Recipe;
+declare function JsReportPhantomPdf(options?: Partial<JsReportPhantomPdf.Options>): JsReport.ExtensionDefinition;
 
 declare module 'jsreport-phantom-pdf' {
   export = JsReportPhantomPdf;

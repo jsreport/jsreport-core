@@ -1,7 +1,7 @@
-import * as JsReport from "jsreport-core";
-import * as JsReportPhantomPdf from "jsreport-phantom-pdf";
-import * as JsRender from "jsreport-jsrender";
-import * as fs from 'fs';
+import JsReport from "jsreport-core";
+import JsReportPhantomPdf from "jsreport-phantom-pdf";
+import JsRender from "jsreport-jsrender";
+import fs from 'fs';
 
 const jsreport = JsReport({
   tasks: {
@@ -21,9 +21,9 @@ jsreport.use(JsRender());
   await jsreport.documentStore.collection('settings').update({}, { $set: { foo: 1 } })
   const res = await jsreport.render({
     template: {
-      content: "<h1>{{foo}}</h1>",
-      engine: JsReport.EngineType.JsRender,
-      recipe: JsReport.RecipeType.PhantomPdf,
+      content: "<h1>{{:foo}}</h1>",
+      engine: JsReport.Engine.JsRender,
+      recipe: JsReport.Recipe.PhantomPdf,
       phantom: {
         header: 'header',
         headerHeight: '5cm',

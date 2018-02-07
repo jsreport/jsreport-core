@@ -1,7 +1,7 @@
 /// <reference types='jsreport-core' />
 
 declare namespace JsReport {
-  const enum RecipeType {
+  const enum Recipe {
     Xlsx = 'xlsx'
   }
 
@@ -20,9 +20,13 @@ declare namespace JsReportXlsx {
     escapeAmp: boolean;
     numberOfParsedAddIterations: number;
   }
+
+  // without exporting enum, it doesn't include the require('jsreport-core') in the test.js for some reason
+  // help welcome
+  export enum Foo { }
 }
 
-declare function JsReportXlsx(options?: Partial<JsReportXlsx.Options>): JsReport.Recipe;
+declare function JsReportXlsx(options?: Partial<JsReportXlsx.Options>): JsReport.ExtensionDefinition;
 
 declare module 'jsreport-xlsx' {
   export = JsReportXlsx;
