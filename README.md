@@ -1,4 +1,5 @@
 # jsreport-core
+
 [![NPM Version](http://img.shields.io/npm/v/jsreport-core.svg?style=flat-square)](https://npmjs.com/package/jsreport-core)
 [![Build Status](https://travis-ci.org/jsreport/jsreport-core.png?branch=master)](https://travis-ci.org/jsreport/jsreport-core)
 
@@ -17,25 +18,25 @@ Next to the engine you need also something we call **recipe**. Recipe represents
 
 Note that `jsreport-core` by default auto discovers installed extensions and apply them. In other words it is enough to just install following packages and there is no need for other configuration.
 
->npm install jsreport-core<br/>
->npm install jsreport-jsrender<br/>
+>npm install jsreport-core
+>npm install jsreport-jsrender
 >npm install jsreport-phantom-pdf
 
 ```js
 var jsreport = require('jsreport-core')()
 
-jsreport.init().then(function () {     
+jsreport.init().then(function () {
    return jsreport.render({
-	   template: {
-		   content: '<h1>Hello {{:foo}}</h1>',
-		   engine: 'jsrender',
-		   recipe: 'phantom-pdf'
-		},
-		data: {
-			foo: "world"
-		}
-	}).then(function(resp) {
-	 //prints pdf with headline Hello world
+       template: {
+           content: '<h1>Hello {{:foo}}</h1>',
+           engine: 'jsrender',
+           recipe: 'phantom-pdf'
+        },
+        data: {
+            foo: "world"
+        }
+    }).then(function(resp) {
+     //prints pdf with headline Hello world
      console.log(resp.content.toString())
    });
 }).catch(function(e) {
@@ -43,63 +44,95 @@ jsreport.init().then(function () {
 })
 ```
 
+Typescript:
+
+```ts
+import * as JsReporterCore from 'jsreport-core';
+
+async function main() {
+    try {
+        const jsreport = JsReporterCore();
+        await jsreport.init();
+        const resp = await jsreport.render({
+            template: {
+                content: '<h1>Hello {{:foo}}</h1>',
+                engine: 'jsrender',
+                recipe: 'phantom-pdf'
+            },
+            data: {
+                foo: "world"
+            }
+        });
+        console.log(resp.content.toString());
+    } catch(e) {
+        console.log(e);
+    }
+}
+```
+
 ## Render
+
 `render` is the main method which invokes report generation. The only parameter is an object representing rendering request. The request has following structure:
+
 ```js
 {
-	//[required definition of the document]
+    //[required definition of the document]
     template: {
-	    //[required] templating engine used to assemble document
-	    engine: "handlebars",
-	    //[required] recipe used for printing previously assembled document
-		recipe: "wkhtmltopdf",
-		//[required] template for the engine		
-		content: "<h1>{{:foo}}</h1>",
-		//javascript helper functions used by templating engines
-		helpers: "function foo() { ...}" +
-				 "function foo2() { ... }"
-		//any other settings used by recipes		 
-		...		 
-	},
-	//dynamic data inputs used by templating engines
+        //[required] templating engine used to assemble document
+        engine: "handlebars",
+        //[required] recipe used for printing previously assembled document
+        recipe: "wkhtmltopdf",
+        //[required] template for the engine
+        content: "<h1>{{:foo}}</h1>",
+        //javascript helper functions used by templating engines
+        helpers: "function foo() { ...}" +
+                 "function foo2() { ... }"
+        //any other settings used by recipes
+        ...
+    },
+    //dynamic data inputs used by templating engines
     data: { foo: "hello world"}
     ...
 }
 ```
 
 The render returns promise with the single response value
+
 ```js
 {
-	//node.js buffer with the document
-	content: ...
-	//stream with the document
-	stream: ...
-	//http response headers with valid content type..
-	headers: { ... }
+    //node.js buffer with the document
+    content: ...
+    //stream with the document
+    stream: ...
+    //http response headers with valid content type..
+    headers: { ... }
 }
 ```
 
 The convention is that jsreport repository extension  starts with `jsreport-xxx`, but the extension real name and also the recipes or engines it registers excludes the `jsreport-` prefix. This means if you install extension `jsreport-handlebars` the engine's name you specify in the render should be `handlebars`.
 
 ### Native helpers
+
 By default you need to send helpers to the template in the string. This is because jsreport runs the template rendering by default in the external process to avoid freezing the application when there is an endless loop or other critical error in the helper. If you want to use your local functions for the helpers you need to switch rendering strategy to `in-process`.
+
 ```js
 var jsreport = require('jsreport-core')(
    { tasks: { strategy: 'in-process' } })
 
 jsreport.init().then(function() {
  return  jsreport.render({
-	   template: {
-		   content: '<h1>Hello {{:~foo())}}</h1>',
-		   helpers: { foo: function() { }
-		   engine: 'jsrender',
-		   recipe: 'phantom-pdf'
-		}
+       template: {
+           content: '<h1>Hello {{:~foo())}}</h1>',
+           helpers: { foo: function() { } },
+           engine: 'jsrender',
+           recipe: 'phantom-pdf'
+        }
    })
 })
 ```
 
 ### Require in the helpers
+
 jsreport by default runs helpers in the sandbox where is the `require` function blocked. To unblock particular modules or local scripts you need to configure `tasks.allowedModules` option.
 
 ```js
@@ -120,16 +153,16 @@ var jsreport = require('jsreport-core')(
 
 jsreport.init().then(function() {
   return jsreport.render({
-	   template: {
-		   content: '<script>{{:~jquery()}}</script>',
-		   helpers: "function jquery() {" +
-		     "var fs = require('fs');" +
-		     "var path = require('path');" +
+       template: {
+           content: '<script>{{:~jquery()}}</script>',
+           helpers: "function jquery() {" +
+             "var fs = require('fs');" +
+             "var path = require('path');" +
              "return fs.readFileSync(path.join(__rootDirectory, 'jquery.js'));" +
            "}",
-		   engine: 'jsrender',
-		   recipe: 'phantom-pdf'
-		}
+           engine: 'jsrender',
+           recipe: 'phantom-pdf'
+        }
    })
 })
 ```
@@ -140,9 +173,8 @@ The following variables are available in the global scope:
 `__appDirectory` - directory of the script which is used when starting node
 `__parentModuleDirectory` - directory of script which was initializing jsreport-core
 
-
-
 ## Extensions
+
 As you see in the first example. Even for the simplest pdf printing you need to install additional packages(extensions).  This is the philosophy of jsreport and you will need to install additional extensions very often. There are not just extensions adding support for a particular templating engine or printing technique. There are many extensions adding support for persisting templates, dynamic script evaluation or even visual html designer and API. To get the idea of the whole platform you can install the full [jsreport](http://jsreport.net/) distribution and pick what you like. Then you can go back to `jsreport-core` and install extensions you need.
 
 You are also welcome to write your own extension or even publish it to the community. See the following articles how to get started.
@@ -167,33 +199,34 @@ jsreport.init()
 ## Configuration
 
 jsreport accepts options as the first parameter. The core options are the following:
+
 ```js
 require('jsreport-core')({
-	//optionally specifies where's the application root and where jsreport searches for extensions
-	rootDirectory: path.join(__dirname, '../../'),
-	//optionally specifies absolute path to directory where the application stores images, reports and database files
-	dataDirectory: path.join(rootDirectory, 'data').
-	//optionally specifies where the application stores temporary diles
-	tempDirectory: path.join(dataDirectory, 'temp'),
+    //optionally specifies where's the application root and where jsreport searches for extensions
+    rootDirectory: path.join(__dirname, '../../'),
+    //optionally specifies absolute path to directory where the application stores images, reports and database files
+    dataDirectory: path.join(rootDirectory, 'data').
+    //optionally specifies where the application stores temporary diles
+    tempDirectory: path.join(dataDirectory, 'temp'),
         //options for logging
         logger: {
-		silent: false // when true, it will silence all transports defined in logger
-	},
-	//options for templating engines and other scripts execution
-	//see the https://github.com/pofider/node-script-manager for more information
-	tasks: {
-		numberOfWorkers: 2,
-		strategy: "http-server | dedicated-process | in-process",
-		templateCache: {
-		   max: 100, //LRU cache with max 100 entries, see npm lru-cache for other options
-		   enabled: true //disable cache
-		}
-	},
-	loadConfig: false,
-	//the temporary files used to render reports are cleaned up by default
-	autoTempCleanup: true,
-	//set to false when you want to always force crawling node_modules when searching for extensions and starting jsreport
-	extensionsLocationCache: true
+        silent: false // when true, it will silence all transports defined in logger
+    },
+    //options for templating engines and other scripts execution
+    //see the https://github.com/pofider/node-script-manager for more information
+    tasks: {
+        numberOfWorkers: 2,
+        strategy: "http-server | dedicated-process | in-process",
+        templateCache: {
+           max: 100, //LRU cache with max 100 entries, see npm lru-cache for other options
+           enabled: true //disable cache
+        }
+    },
+    loadConfig: false,
+    //the temporary files used to render reports are cleaned up by default
+    autoTempCleanup: true,
+    //set to false when you want to always force crawling node_modules when searching for extensions and starting jsreport
+    extensionsLocationCache: true
 })
 ```
 
@@ -206,28 +239,34 @@ require('jsreport-core')({
 5. options passed directly to `require('jsreport')({})`
 
 Options with the name corresponding to the extension's name are forwarded to the particular extension. This is the common way how to globally configure all extensions at one place.
+
 ```js
 require('jsreport-core')({
     ...
-	"scripts": {
-	  "allowedModules": ["url"]
-	}
+    "scripts": {
+      "allowedModules": ["url"]
+    }
 })
 ```
+
 You can find configuration notes for the full jsreport distribution [here](http://jsreport.net/learn/configuration).
 
 ## Logging
+
 jsreport leverages [winston](https://github.com/winstonjs/winston) logging abstraction together with [debug](https://github.com/visionmedia/debug) utility. To output logs in the console just simply set the `DEBUG` environment variable
+
 ```bash
 DEBUG=jsreport node app.js
 ```
 
 on windows do
+
 ```bash
 set DEBUG=jsreport & node app.js
 ```
 
 jsreport exposes `logger` property which can be used to adapt the logging as you like. You can for example just add [winston](https://github.com/winstonjs/winston) console transport and filter in only important log messages into console.
+
 ```js
 var winston = require('winston')
 var jsreport = require('jsreport-core')()
@@ -235,12 +274,13 @@ jsreport.logger.add(winston.transports.Console, { level: 'info' })
 ```
 
 ## Listeners
+
 jsreport extensions are mainly using the system of event listeners to adapt the rendering process. Extension can for example listen to event which is called before the rendering process starts and adapt the input values.
 
 ```js
 //jsreport must be initialized at this time
 jsreport.beforeRenderListeners.add('name-of-listener', function(req, res) {
-	req.template.content = 'Changing the template in listener!'
+    req.template.content = 'Changing the template in listener!'
 })
 ```
 
@@ -250,41 +290,45 @@ Note this technique can be used in extensions, but also outside in nodejs applic
 
 jsreport currently support these main listeners
 
-- `initializeListeners()`- called when all extensions are initialized<br/>
-- `beforeRenderListeners(req, res)` - very first in the rendering pipeline, used to load templates and parse input data<br/>
-- `validateRenderListeners(req, res)` - possible to reject rendering before it starts, jsut return failed promise or exception<br/>
-- `afterTemplatingEnginesExecutedListeners(req, res)` - engine like handlebars or jsrender extracted the content, the `res.content` contains Buffer with extracted content<br/>
-- `afterRenderListeners(req, res)` - recipes are executed, `res.content` contains final buffer which will be returned as a stream back, the last change to modify the output or send it elsewhere<br/>
+- `initializeListeners()`- called when all extensions are initialized
+- `beforeRenderListeners(req, res)` - very first in the rendering pipeline, used to load templates and parse input data
+- `validateRenderListeners(req, res)` - possible to reject rendering before it starts, jsut return failed promise or exception
+- `afterTemplatingEnginesExecutedListeners(req, res)` - engine like handlebars or jsrender extracted the content, the `res.content` contains Buffer with extracted content
+- `afterRenderListeners(req, res)` - recipes are executed, `res.content` contains final buffer which will be returned as a stream back, the last change to modify the output or send it elsewhere
 - `renderErrorListeners(req, res, err)` - fired when there is error somewhere in the rendering pipeline
 
-
 ## Studio
+
 jsreport includes also visual html studio and rest API. This is provided through [jsreport-express](https://github.com/jsreport/jsreport-express) extension. See its documentation for details.
 
 ## Template store
+
 `jsreport-core` includes API for persisting and accessing report templates. This API is then used by extensions mainly in combination with jsreport [studio](#studio). `jsreport-core` implements just in-memory persistence, but you can add other persistence methods through extensions. See the [list](#store-providers).
 
 The persistence API is almost compatible to mongodb API:
+
 ```js
 jsreport.documentStore.collection('templates')
-	.find({name: 'test'})
-	.then(function(res) {})
+    .find({name: 'test'})
+    .then(function(res) {})
 
 jsreport.documentStore.collection('templates')
-	.update({name: 'test'}, { $set: { attr: 'value' })
-	.then(function(res) {})
+    .update({name: 'test'}, { $set: { attr: 'value' })
+    .then(function(res) {})
 
 jsreport.documentStore.collection('templates')
-	.insert({name: 'test'})
-	.then(function(res) {})
+    .insert({name: 'test'})
+    .then(function(res) {})
 
 jsreport.documentStore.collection('templates')
-	.remove({name: 'test'})
-	.then(function(res) {})
+    .remove({name: 'test'})
+    .then(function(res) {})
 ```
+
 ## List of extensions
 
 ### Store providers
+
 - [jsreport-fs-store](https://github.com/jsreport/jsreport-fs-store)
 - [jsreport-mongodb-store](https://github.com/jsreport/jsreport-mongodb-store)
 - [jsreport-embedded-store](https://github.com/jsreport/jsreport-embedded-store)
@@ -292,12 +336,14 @@ jsreport.documentStore.collection('templates')
 - [jsreport-postgres-store](https://github.com/jsreport/jsreport-postgres-store)
 
 ### Engines
+
 - [jsreport-jsrender](https://github.com/jsreport/jsreport-jsrender)
 - [jsreport-handlebars](https://github.com/jsreport/jsreport-handlebars)
 - [jsreport-ejs](https://github.com/jsreport/jsreport-ejs)
 - [jsreport-jade](https://github.com/bjrmatos/jsreport-jade)
 
 ### Recipes
+
 - [jsreport-phantom-pdf](https://github.com/jsreport/jsreport-phantom-pdf)
 - [jsreport-electron-pdf](https://github.com/bjrmatos/jsreport-electron-pdf)
 - [jsreport-text](https://github.com/jsreport/jsreport-text)
@@ -332,7 +378,9 @@ jsreport.documentStore.collection('templates')
 - [jsreport-debug](https://github.com/jsreport/jsreport-debug)
 
 ### Blob storages
+
 - [jsreport-azure-storage](https://github.com/jsreport/jsreport-azure-storage)
 
 ## License
+
 LGPL
