@@ -128,7 +128,7 @@ module.exports = (store) => {
   it('update should return number of updsated items', async () => {
     await store().collection('templates').insert({ name: '1', recipe: 'a' })
     await store().collection('templates').insert({ name: '2', recipe: 'a' })
-    const res = await store().collection('templates').update({ recipe: 'a' }, { $set: { name: 'test2' } })
+    const res = await store().collection('templates').update({ recipe: 'a' }, { $set: { engine: 'test2' } })
     res.should.be.eql(2)
   })
 }
