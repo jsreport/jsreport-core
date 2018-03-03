@@ -1,5 +1,5 @@
 require('should')
-const InMemoryBlobStorage = require('../../lib/blobStorage/inMemoryBlobStorage.js')
+const InMemoryBlobStorage = require('../../lib/blobStorage/inMemoryBlobStorageProvider.js')
 const common = require('./common.js')
 
 describe('inMemoryBlobStorage', () => {

@@ -1,7 +1,7 @@
 const path = require('path')
 const fs = require('fs')
 const util = require('../../lib/util/util.js')
-const FileSystem = require('../../lib/blobStorage/fileSystemBlobStorage.js')
+const FileSystem = require('../../lib/blobStorage/fileSystemBlobStorageProvider.js')
 const tmpDir = require('os').tmpdir()
 const common = require('./common.js')
 
