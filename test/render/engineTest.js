@@ -432,6 +432,27 @@ describe('engine', () => {
       })
     })
 
+    it('should return dumped logs from console', (done) => {
+      engine({
+        template: {
+          content: '',
+          helpers: 'function a() { console.log({a: 1}) }'
+        },
+        tasks: { allowedModules: '*', templateCache: { enabled: false }, modules: [] },
+        engine: path.join(__dirname, 'helpersEngine.js')
+      }, () => {
+      }, (err, res) => {
+        if (err) {
+          return done(err)
+        }
+
+        res.logs.should.have.length(2)
+        res.logs[1].message.should.be.eql('{ a: 1 }')
+
+        done()
+      })
+    })
+
     it('should be able require modules by aliases', (done) => {
       engine({
         template: {
