@@ -168,6 +168,18 @@ describe('reporter', () => {
     extensionInitialized.should.be.eql(true)
   })
 
+  it('should reject init if custom extension init fails', () => {
+    const reporter = core({ rootDirectory: path.join(__dirname) })
+    reporter.use({
+      name: 'test',
+      main: function (reporter, definition) {
+        throw new Error('failing')
+      }
+    })
+
+    return reporter.init().should.be.rejected()
+  })
+
   it('should fire initializeListeners on custom extension', async () => {
     const reporter = core({ rootDirectory: path.join(__dirname) })
     let extensionInitialized = false
