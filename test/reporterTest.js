@@ -361,4 +361,10 @@ describe('reporter', () => {
     await reporter.close()
     killed.should.be.true()
   })
+
+  it('should reject second init', async () => {
+    const reporter = core({ rootDirectory: path.join(__dirname) })
+    await reporter.init()
+    return reporter.init().should.be.rejected()
+  })
 })
