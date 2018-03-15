@@ -35,16 +35,6 @@ module.exports = (store) => {
     res[0].recipe.should.be.eql('foo')
   })
 
-  it('insert should fail with invalid name', async () => {
-    return store().collection('templates').insert({ name: '<test' }).should.be.rejected()
-  })
-
-  it('update should fail with invalid name', async () => {
-    await store().collection('templates').insert({ name: 'test' })
-
-    return store().collection('templates').update({ name: 'test' }, { $set: { name: '/foo/other' } }).should.be.rejected()
-  })
-
   it('insert remove query', async () => {
     await store().collection('templates').insert({ name: 'test' })
     await store().collection('templates').remove({ name: 'test' })
