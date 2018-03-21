@@ -2,6 +2,7 @@ require('should')
 const engine = require('../../lib/render/engineScript')
 const path = require('path')
 const ScriptManager = require('script-manager')
+const safeSandboxPath = path.join(__dirname, '../../lib/render/safeSandbox')
 
 describe('engine', () => {
   describe('engine with dedicated-process strategy', () => {
@@ -40,6 +41,7 @@ describe('engine', () => {
 
     it('should be able pass helpers in javascript object', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: 'content',
           helpers: {
@@ -68,6 +70,7 @@ describe('engine', () => {
       }
 
       engine({
+        safeSandboxPath,
         template: template,
         nativeModules: [],
         engine: path.join(__dirname, 'helpersEngine.js')
@@ -87,6 +90,7 @@ describe('engine', () => {
   function cache (scriptManager) {
     it('second hit should go from cache', function (done) {
       engine({
+        safeSandboxPath,
         template: {
           content: 'content'
         },
@@ -99,6 +103,7 @@ describe('engine', () => {
         }
 
         engine({
+          safeSandboxPath,
           template: {
             content: 'content'
           },
@@ -120,6 +125,7 @@ describe('engine', () => {
 
     it('should return logs from console also on the cache hit', function (done) {
       engine({
+        safeSandboxPath,
         template: {
           content: '',
           helpers: 'function a() { console.log(\'foo\') }'
@@ -132,6 +138,7 @@ describe('engine', () => {
         }
 
         engine({
+          safeSandboxPath,
           template: {
             content: '',
             helpers: 'function a() { console.log(\'foo\') }'
@@ -156,6 +163,7 @@ describe('engine', () => {
   function common (scriptManager) {
     it('should be able to return from a simple engine', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: 'content'
         },
@@ -174,6 +182,7 @@ describe('engine', () => {
 
     it('should send compiled helpers to the engine', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: '',
           helpers: 'function a() { return "foo"; }'
@@ -193,6 +202,7 @@ describe('engine', () => {
 
     it('should send data to the engine', (done) => {
       engine({
+        safeSandboxPath,
         template: { content: '' },
         engine: path.join(__dirname, 'dataEngine.js'),
         nativeModules: [],
@@ -211,6 +221,7 @@ describe('engine', () => {
 
     it('should block not allowed modules', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: '',
           helpers: 'function a() { require("fs"); }'
@@ -229,6 +240,7 @@ describe('engine', () => {
 
     it('should unblock all modules with *', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: '',
           helpers: 'function a() { require("fs"); }'
@@ -247,6 +259,7 @@ describe('engine', () => {
 
     it('should be able to extend allowed modules', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: '',
           helpers: 'function a() { require("fs"); }'
@@ -265,6 +278,7 @@ describe('engine', () => {
 
     it('should be able to use native modules', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: '',
           helpers: 'function a() { return bluebird.resolve(1) }'
@@ -283,6 +297,7 @@ describe('engine', () => {
 
     it('should extract references from input string', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: ''
         },
@@ -305,6 +320,7 @@ describe('engine', () => {
 
     it('should not fail when extracting references from array containing null', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: ''
         },
@@ -324,6 +340,7 @@ describe('engine', () => {
 
     it('should be able use local modules if enabled in allowedModules', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: 'content',
           helpers: "function a() { return require('helperB')(); }"
@@ -347,6 +364,7 @@ describe('engine', () => {
 
     it('should be able use local modules if enabled in allowedModules and rootDirectory path points there', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: 'content',
           helpers: "function a() { return require('helperB')(); }"
@@ -369,6 +387,7 @@ describe('engine', () => {
 
     it('should be able use local modules if enabled in allowedModules and appDirectory path points there', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: 'content',
           helpers: "function a() { return require('helperB')(); }"
@@ -391,6 +410,7 @@ describe('engine', () => {
 
     it('should be able use local modules if enabled in allowedModules and parentModuleDirectory path points there', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: 'content',
           helpers: "function a() { return require('helperB')(); }"
@@ -413,6 +433,7 @@ describe('engine', () => {
 
     it('should return logs from console', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: '',
           helpers: 'function a() { console.log(\'foo\') }'
@@ -434,6 +455,7 @@ describe('engine', () => {
 
     it('should return dumped logs from console', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: '',
           helpers: 'function a() { console.log({a: 1}) }'
@@ -455,6 +477,7 @@ describe('engine', () => {
 
     it('should be able require modules by aliases', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: '',
           helpers: 'function a() { return require("module"); }'
@@ -474,6 +497,7 @@ describe('engine', () => {
 
     it('should terminate endless loop after timeout', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: '',
           helpers: 'function a() { while(true) {} }'
@@ -493,6 +517,7 @@ describe('engine', () => {
 
     it('should be able to reach buffer in global scope', (done) => {
       engine({
+        safeSandboxPath,
         template: {
           content: '',
           helpers: 'function a() { return typeof Buffer; }'
