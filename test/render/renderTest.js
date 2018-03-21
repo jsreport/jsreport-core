@@ -1,5 +1,6 @@
 const core = require('../../index.js')
 const should = require('should')
+const createRequest = require('../../lib/render/request')
 
 describe('render', () => {
   let reporter
@@ -92,13 +93,13 @@ describe('render', () => {
   })
 
   it('should propagate logs to the parent request', async () => {
-    const parentReq = {
+    const parentReq = createRequest({
       template: {},
       options: {},
       context: {
         logs: [{message: 'hello'}]
       }
-    }
+    })
 
     await reporter.render({
       template: { content: 'Hey', engine: 'none', recipe: 'html' }
@@ -111,13 +112,13 @@ describe('render', () => {
     let options
     reporter.beforeRenderListeners.add('test', this, (req) => (options = req.options))
 
-    const parentReq = {
+    const parentReq = createRequest({
       template: {},
       options: {},
       context: {
         logs: []
       }
-    }
+    })
 
     await reporter.render({
       template: { content: 'Hey', engine: 'none', recipe: 'html' }
@@ -135,14 +136,14 @@ describe('render', () => {
       options = req.options
     })
 
-    const parentReq = {
+    const parentReq = createRequest({
       template: {},
       options: {a: 'a', c: 'c'},
       data: {a: 'a'},
       context: {
         logs: []
       }
-    }
+    })
 
     await reporter.render({
       template: { content: 'Hey', engine: 'none', recipe: 'html' }, data: {b: 'b'}, options: {b: 'b', c: 'x'}
