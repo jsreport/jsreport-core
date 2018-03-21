@@ -367,4 +367,23 @@ describe('reporter', () => {
     await reporter.init()
     return reporter.init().should.be.rejected()
   })
+
+  it('should propagate logs to the parent request', async () => {
+    const reporter = core({ discover: false })
+    await reporter.init()
+
+    const parentReq = {
+      template: {},
+      options: {},
+      context: {
+        logs: [{message: 'hello'}]
+      }
+    }
+
+    await reporter.render({
+      template: { content: 'Hey', engine: 'none', recipe: 'html' }
+    }, parentReq)
+
+    parentReq.context.logs.map(l => l.message).should.containEql('Rendering engine none')
+  })
 })

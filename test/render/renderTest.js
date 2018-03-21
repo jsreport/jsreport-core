@@ -1,5 +1,5 @@
 const core = require('../../index.js')
-require('should')
+const should = require('should')
 
 describe('render', () => {
   let reporter
@@ -89,5 +89,70 @@ describe('render', () => {
 
     const response = await reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}})
     response.meta.logs.find((l) => l.message === 'foo').should.be.ok()
+  })
+
+  it('should propagate logs to the parent request', async () => {
+    const parentReq = {
+      template: {},
+      options: {},
+      context: {
+        logs: [{message: 'hello'}]
+      }
+    }
+
+    await reporter.render({
+      template: { content: 'Hey', engine: 'none', recipe: 'html' }
+    }, parentReq)
+
+    parentReq.context.logs.map(l => l.message).should.containEql('Rendering engine none')
+  })
+
+  it('should add isChildRequest to the nested render', async () => {
+    let options
+    reporter.beforeRenderListeners.add('test', this, (req) => (options = req.options))
+
+    const parentReq = {
+      template: {},
+      options: {},
+      context: {
+        logs: []
+      }
+    }
+
+    await reporter.render({
+      template: { content: 'Hey', engine: 'none', recipe: 'html' }
+    }, parentReq)
+
+    options.isChildRequest.should.be.true()
+    should(parentReq.options.isChildRequest).not.be.true()
+  })
+
+  it('should merge parent to the current request', async () => {
+    let data
+    let options
+    reporter.beforeRenderListeners.add('test', this, (req) => {
+      data = req.data
+      options = req.options
+    })
+
+    const parentReq = {
+      template: {},
+      options: {a: 'a', c: 'c'},
+      data: {a: 'a'},
+      context: {
+        logs: []
+      }
+    }
+
+    await reporter.render({
+      template: { content: 'Hey', engine: 'none', recipe: 'html' }, data: {b: 'b'}, options: {b: 'b', c: 'x'}
+    }, parentReq)
+
+    data.should.have.property('a')
+    data.should.have.property('b')
+    options.should.have.property('a')
+    options.should.have.property('b')
+    options.should.have.property('c')
+    options.c.should.be.eql('x')
   })
 })
