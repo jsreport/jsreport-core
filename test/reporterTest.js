@@ -311,7 +311,7 @@ describe('reporter', () => {
   })
 
   it('should skip extension with enabled === false in config', async () => {
-    const reporter = core({ rootDirectory: __dirname, test: { enabled: false } })
+    const reporter = core({rootDirectory: __dirname, extensions: {test: {enabled: false}}})
     await reporter.init()
     should(reporter.testExtensionInitialized).not.eql(true)
   })
