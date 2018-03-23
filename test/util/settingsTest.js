@@ -9,7 +9,7 @@ describe('Settings', function () {
   beforeEach(async () => {
     settings = new Settings()
     documentStore = DocumentStore({
-      connectionString: { name: 'memory', inMemory: true },
+      store: { provider: 'memory', inMemory: true },
       dataDirectory: 'data',
       logger: require('..//util/testLogger.js')()
     })

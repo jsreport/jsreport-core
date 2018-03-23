@@ -7,7 +7,7 @@ describe('document store', () => {
 
   beforeEach(() => {
     store = DocumentStore({
-      connectionString: {name: 'memory'},
+      store: {provider: 'memory'},
       logger: (require('..//util/testLogger.js'))()
     })
 
