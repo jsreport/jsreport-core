@@ -15,7 +15,7 @@ describe('fileSystemBlobStorage', () => {
       fs.mkdirSync(path.join(tmpDir, 'test-output'))
     }
 
-    blobStorage = FileSystem({blobStorage: {path: path.join(tmpDir, 'test-output')}})
+    blobStorage = FileSystem({blobStorage: {dataDirectory: path.join(tmpDir, 'test-output')}})
   })
 
   common(() => blobStorage)
