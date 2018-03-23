@@ -10,7 +10,6 @@ describe('Settings', function () {
     settings = new Settings()
     documentStore = DocumentStore({
       store: { provider: 'memory', inMemory: true },
-      dataDirectory: 'data',
       logger: require('..//util/testLogger.js')()
     })
     settings.registerEntity(documentStore)
