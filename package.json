@@ -22,7 +22,6 @@
     "nconf": "0.10.0",
     "node.extend": "2.0.0",
     "reap2": "1.0.1",
-    "safe-buffer": "5.1.1",
     "script-manager": "0.7.0",
     "streamifier": "0.1.1",
     "vm2": "3.5.2",
