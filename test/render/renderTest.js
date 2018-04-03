@@ -83,6 +83,19 @@ describe('render', () => {
     }
   })
 
+  it('should allow customize report name', async () => {
+    const res = await reporter.render({
+      template: {
+        engine: 'none',
+        content: 'none',
+        recipe: 'html'
+      },
+      options: { reportName: 'custom-report-name' }
+    })
+
+    res.meta.reportName.should.be.eql('custom-report-name')
+  })
+
   it('should provide logs in response meta', async () => {
     reporter.beforeRenderListeners.add('test', (req, res) => {
       reporter.logger.debug('foo', req)
