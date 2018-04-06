@@ -122,8 +122,8 @@ describe('render', () => {
   })
 
   it('should add isChildRequest to the nested render', async () => {
-    let options
-    reporter.beforeRenderListeners.add('test', this, (req) => (options = req.options))
+    let context
+    reporter.beforeRenderListeners.add('test', this, (req) => (context = req.context))
 
     const parentReq = createRequest({
       template: {},
@@ -137,8 +137,8 @@ describe('render', () => {
       template: { content: 'Hey', engine: 'none', recipe: 'html' }
     }, parentReq)
 
-    options.isChildRequest.should.be.true()
-    should(parentReq.options.isChildRequest).not.be.true()
+    context.isChildRequest.should.be.true()
+    should(parentReq.context.isChildRequest).not.be.true()
   })
 
   it('should merge parent to the current request', async () => {
