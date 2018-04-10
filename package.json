@@ -11,6 +11,7 @@
     "test:watch": "mocha --watch --recursive test"
   },
   "dependencies": {
+    "ajv": "6.4.0",
     "app-root-path": "2.0.1",
     "bluebird": "3.5.1",
     "debug": "3.1.0",

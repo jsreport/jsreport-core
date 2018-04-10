@@ -7,8 +7,7 @@ module.exports = (store) => {
       name: { type: 'Edm.String', publicKey: true },
       content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
       recipe: { type: 'Edm.String' },
-      modificationDate: { type: 'Edm.DateTimeOffset' },
-      phantom: { type: 'jsreport.PhantomType' }
+      modificationDate: { type: 'Edm.DateTimeOffset' }
     })
     store().registerEntitySet('templates', { entityType: 'jsreport.TemplateType', splitIntoDirectories: true })
     await store().init()
