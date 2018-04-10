@@ -11,15 +11,6 @@ describe('render', () => {
     reporter.use({
       name: 'test',
       main: function (reporter, definition) {
-        reporter.documentStore.registerEntityType('TemplateType', {
-          _id: { type: 'Edm.String', key: true },
-          name: { type: 'Edm.String', publicKey: true },
-          content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
-          engine: { type: 'Edm.String' },
-          recipe: { type: 'Edm.String' },
-          modificationDate: { type: 'Edm.DateTimeOffset' }
-        }, true)
-
         reporter.documentStore.registerComplexType('ChromeType', {
           printBackground: { type: 'Edm.Boolean' },
           timeout: { type: 'Edm.Int32' }

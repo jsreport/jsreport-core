@@ -9,6 +9,7 @@ module.exports = (store) => {
       recipe: { type: 'Edm.String' },
       modificationDate: { type: 'Edm.DateTimeOffset' }
     })
+
     store().registerEntitySet('templates', { entityType: 'jsreport.TemplateType', splitIntoDirectories: true })
     await store().init()
     return store().drop()
