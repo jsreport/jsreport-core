@@ -534,5 +534,24 @@ describe('engine', () => {
         done()
       })
     })
+
+    it('should throw valid Error when templating engine throws', (done) => {
+      engine({
+        safeSandboxPath,
+        template: {
+          content: 'content'
+        },
+        nativeModules: [],
+        engine: path.join(__dirname, 'helpersEngine.js')
+      }, function () {
+      }, function (err, res) {
+        if (!err) {
+          return done(new Error('Should have failed'))
+        }
+
+        err.should.be.Error()
+        done()
+      })
+    })
   }
 })
