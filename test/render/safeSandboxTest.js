@@ -29,13 +29,13 @@ describe('sandbox', () => {
     sandbox.a.b.should.be.eql('x')
   })
 
-  it('should be able to set props with sandboxReadonly=false', () => {
+  it('should be able to set props with sandboxReadOnly=false', () => {
     const { run, sandbox } = safeSandbox({
       a: 'a'
     }, {
       propertiesConfig: {
         'a': {
-          sandboxHidden: false
+          sandboxReadOnly: false
         }
       }
     })
@@ -46,7 +46,7 @@ describe('sandbox', () => {
   it('should hide simple props', (done) => {
     const { run } = safeSandbox({
       done: (v) => {
-        should(v).not.be.ok()
+        should(v).be.ok()
         done()
       },
       a: 'foo'
@@ -57,7 +57,7 @@ describe('sandbox', () => {
         }
       }
     })
-    run(`done(a)`)
+    run(`done(typeof a === 'undefined')`)
   })
 
   it('should hide nested props', (done) => {
@@ -81,19 +81,19 @@ describe('sandbox', () => {
     const { run } = safeSandbox({ a: { b: 'foo' } }, {
       propertiesConfig: {
         'a.b': {
-          sandboxReadonly: true
+          sandboxReadOnly: true
         }
       }
     })
 
-    should.throws(() => run(`a.b = 1`))
+    should.throws(() => run(`debugger; a.b = 1; console.log(a.b)`))
   })
 
   it('should make props readonly recursively', () => {
     const { run } = safeSandbox({ a: { b: { c: 'foo' } } }, {
       propertiesConfig: {
         'a.b': {
-          sandboxReadonly: true
+          sandboxReadOnly: true
         }
       }
     })
