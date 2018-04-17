@@ -168,157 +168,190 @@ describe('reporter', () => {
     extensionInitialized.should.be.eql(true)
   })
 
-  it('should register optionsSchema of custom extension', async () => {
-    const reporter = core({ rootDirectory: path.join(__dirname) })
-    const schema = {
-      type: 'object',
-      properties: {
-        allowed: { type: 'boolean' }
+  describe('options json schema', () => {
+    it('should register optionsSchema of custom extension', async () => {
+      const reporter = core({ rootDirectory: path.join(__dirname) })
+      const schema = {
+        type: 'object',
+        properties: {
+          allowed: { type: 'boolean' }
+        }
       }
-    }
 
-    reporter.use({
-      name: 'test',
-      optionsSchema: {
-        extensions: {
-          test: schema
-        }
-      },
-      main: (reporter, definition) => {}
+      reporter.use({
+        name: 'test',
+        optionsSchema: {
+          extensions: {
+            test: schema
+          }
+        },
+        main: (reporter, definition) => {}
+      })
+
+      await reporter.init()
+
+      reporter.optionsValidator.getSchema('test').should.be.eql(Object.assign({
+        $schema: reporter.optionsValidator.schemaVersion
+      }, schema))
     })
 
-    await reporter.init()
+    it('should validate and coerce options of custom extension', async () => {
+      const reporter = core({ rootDirectory: path.join(__dirname) })
+      let options
 
-    reporter.optionsValidator.getSchema('test').should.be.eql(Object.assign({
-      $schema: reporter.optionsValidator.schemaVersion
-    }, schema))
-  })
-
-  it('should validate and coerce options of custom extension', async () => {
-    const reporter = core({ rootDirectory: path.join(__dirname) })
-    let options
-
-    reporter.use({
-      name: 'test',
-      optionsSchema: {
-        extensions: {
-          test: {
-            type: 'object',
-            properties: {
-              name: { type: 'string' },
-              timeout: { type: 'number' },
-              printBackground: { type: 'boolean' }
+      reporter.use({
+        name: 'test',
+        optionsSchema: {
+          extensions: {
+            test: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                timeout: { type: 'number' },
+                printBackground: { type: 'boolean' }
+              }
             }
           }
-        }
-      },
-      options: {
-        name: 'testing',
-        timeout: '10000',
-        printBackground: 'true'
-      },
-      main: (reporter, definition) => { options = definition.options }
+        },
+        options: {
+          name: 'testing',
+          timeout: '10000',
+          printBackground: 'true'
+        },
+        main: (reporter, definition) => { options = definition.options }
+      })
+
+      await reporter.init()
+
+      options.name.should.be.eql('testing')
+      options.timeout.should.be.eql(10000)
+      options.printBackground.should.be.true()
     })
 
-    await reporter.init()
+    it('should validate and corce special string option to array', async () => {
+      const reporter = core({ rootDirectory: path.join(__dirname) })
 
-    options.name.should.be.eql('testing')
-    options.timeout.should.be.eql(10000)
-    options.printBackground.should.be.true()
-  })
+      let options
 
-  it('should validate and keep buffer object of custom extension', async () => {
-    const reporter = core({ rootDirectory: path.join(__dirname) })
-    let options
-
-    reporter.use({
-      name: 'test',
-      optionsSchema: {
-        extensions: {
-          test: {
-            type: 'object',
-            properties: {
-              name: { type: 'string' },
-              rawContent: { '$jsreport-acceptsBuffer': true }
+      reporter.use({
+        name: 'test',
+        optionsSchema: {
+          extensions: {
+            test: {
+              type: 'object',
+              properties: {
+                sampleModules: { type: 'string', '$jsreport-constantOrArray': ['*'] },
+                allowedModules: { type: 'string', '$jsreport-constantOrArray': ['*'] }
+              }
             }
           }
-        }
-      },
-      options: {
-        name: 'testing',
-        rawContent: Buffer.from('testing')
-      },
-      main: (reporter, definition) => { options = definition.options }
+        },
+        options: {
+          sampleModules: '*',
+          allowedModules: 'request,lodash,moment'
+        },
+        main: (reporter, definition) => { options = definition.options }
+      })
+
+      await reporter.init()
+
+      options.sampleModules.should.be.eql('*')
+      options.allowedModules.should.be.eql(['request', 'lodash', 'moment'])
     })
 
-    await reporter.init()
+    it('should validate and keep buffer object of custom extension', async () => {
+      const reporter = core({ rootDirectory: path.join(__dirname) })
+      let options
 
-    options.name.should.be.eql('testing')
-    should(Buffer.isBuffer(options.rawContent)).be.true()
-  })
-
-  it('should validate and coerce options when trying to override root options after extension init', async () => {
-    const reporter = core({ rootDirectory: path.join(__dirname) })
-    let options
-
-    reporter.use({
-      name: 'test',
-      optionsSchema: {
-        extensions: {
-          test: {
-            type: 'object',
-            properties: {
-              name: { type: 'string' },
-              timeout: { type: 'number' },
-              printBackground: { type: 'boolean' }
+      reporter.use({
+        name: 'test',
+        optionsSchema: {
+          extensions: {
+            test: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                rawContent: { '$jsreport-acceptsBuffer': true }
+              }
             }
           }
-        }
-      },
-      options: {
-        name: 'testing',
-        timeout: '10000',
-        printBackground: 'true'
-      },
-      main: (reporter, definition) => {
-        definition.options = Object.assign({}, definition.options, {
-          timeout: '20000',
-          printBackground: 'false'
-        })
+        },
+        options: {
+          name: 'testing',
+          rawContent: Buffer.from('testing')
+        },
+        main: (reporter, definition) => { options = definition.options }
+      })
 
-        options = definition.options
-      }
+      await reporter.init()
+
+      options.name.should.be.eql('testing')
+      should(Buffer.isBuffer(options.rawContent)).be.true()
     })
 
-    await reporter.init()
+    it('should validate and coerce options when trying to override root options after extension init', async () => {
+      const reporter = core({ rootDirectory: path.join(__dirname) })
+      let options
 
-    options.name.should.be.eql('testing')
-    options.timeout.should.be.eql(20000)
-    options.printBackground.should.be.false()
-  })
-
-  it('should reject on invalid options of custom extension', async () => {
-    const reporter = core({ rootDirectory: path.join(__dirname) })
-
-    reporter.use({
-      name: 'test',
-      optionsSchema: {
-        extensions: {
-          test: {
-            type: 'object',
-            properties: {
-              printBackground: { type: 'boolean' }
+      reporter.use({
+        name: 'test',
+        optionsSchema: {
+          extensions: {
+            test: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                timeout: { type: 'number' },
+                printBackground: { type: 'boolean' }
+              }
             }
           }
+        },
+        options: {
+          name: 'testing',
+          timeout: '10000',
+          printBackground: 'true'
+        },
+        main: (reporter, definition) => {
+          definition.options = Object.assign({}, definition.options, {
+            timeout: '20000',
+            printBackground: 'false'
+          })
+
+          options = definition.options
         }
-      },
-      options: {
-        printBackground: 10
-      },
-      main: (reporter, definition) => { }
+      })
+
+      await reporter.init()
+
+      options.name.should.be.eql('testing')
+      options.timeout.should.be.eql(20000)
+      options.printBackground.should.be.false()
     })
 
-    return reporter.init().should.be.rejectedWith(/does not match the defined schema/)
+    it('should reject on invalid options of custom extension', async () => {
+      const reporter = core({ rootDirectory: path.join(__dirname) })
+
+      reporter.use({
+        name: 'test',
+        optionsSchema: {
+          extensions: {
+            test: {
+              type: 'object',
+              properties: {
+                printBackground: { type: 'boolean' }
+              }
+            }
+          }
+        },
+        options: {
+          printBackground: 10
+        },
+        main: (reporter, definition) => { }
+      })
+
+      return reporter.init().should.be.rejectedWith(/does not match the defined schema/)
+    })
   })
 
   it('should reject init if custom extension init fails', () => {
