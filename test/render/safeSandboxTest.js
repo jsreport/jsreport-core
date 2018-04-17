@@ -86,7 +86,7 @@ describe('sandbox', () => {
       }
     })
 
-    should.throws(() => run(`debugger; a.b = 1; console.log(a.b)`))
+    should.throws(() => run(`a.b = 1`))
   })
 
   it('should make props readonly recursively', () => {

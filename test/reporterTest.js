@@ -149,7 +149,7 @@ describe('reporter', () => {
   })
 
   it('should auto discover extensions when no use called', async () => {
-    const reporter = core({ rootDirectory: __dirname, extensionsLocationCache: false })
+    const reporter = core({ rootDirectory: __dirname, useExtensionsLocationCache: false })
     await reporter.init()
     reporter.testExtensionInitialized.should.be.eql(true)
   })
@@ -179,13 +179,19 @@ describe('reporter', () => {
 
     reporter.use({
       name: 'test',
-      optionsSchema: schema,
+      optionsSchema: {
+        extensions: {
+          test: schema
+        }
+      },
       main: (reporter, definition) => {}
     })
 
     await reporter.init()
 
-    reporter.optionsValidator.getSchema('test').should.be.eql(schema)
+    reporter.optionsValidator.getSchema('test').should.be.eql(Object.assign({
+      $schema: reporter.optionsValidator.schemaVersion
+    }, schema))
   })
 
   it('should validate and coerce options of custom extension', async () => {
@@ -195,11 +201,15 @@ describe('reporter', () => {
     reporter.use({
       name: 'test',
       optionsSchema: {
-        type: 'object',
-        properties: {
-          name: { type: 'string' },
-          timeout: { type: 'number' },
-          printBackground: { type: 'boolean' }
+        extensions: {
+          test: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              timeout: { type: 'number' },
+              printBackground: { type: 'boolean' }
+            }
+          }
         }
       },
       options: {
@@ -224,10 +234,14 @@ describe('reporter', () => {
     reporter.use({
       name: 'test',
       optionsSchema: {
-        type: 'object',
-        properties: {
-          name: { type: 'string' },
-          rawContent: { '$jsreport-acceptsBuffer': true }
+        extensions: {
+          test: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              rawContent: { '$jsreport-acceptsBuffer': true }
+            }
+          }
         }
       },
       options: {
@@ -250,11 +264,15 @@ describe('reporter', () => {
     reporter.use({
       name: 'test',
       optionsSchema: {
-        type: 'object',
-        properties: {
-          name: { type: 'string' },
-          timeout: { type: 'number' },
-          printBackground: { type: 'boolean' }
+        extensions: {
+          test: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              timeout: { type: 'number' },
+              printBackground: { type: 'boolean' }
+            }
+          }
         }
       },
       options: {
@@ -285,9 +303,13 @@ describe('reporter', () => {
     reporter.use({
       name: 'test',
       optionsSchema: {
-        type: 'object',
-        properties: {
-          printBackground: { type: 'boolean' }
+        extensions: {
+          test: {
+            type: 'object',
+            properties: {
+              printBackground: { type: 'boolean' }
+            }
+          }
         }
       },
       options: {

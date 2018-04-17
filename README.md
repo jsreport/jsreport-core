@@ -196,7 +196,7 @@ require('jsreport-core')({
 	// the temporary files used to render reports are cleaned up by default
 	autoTempCleanup: true,
 	// set to false when you want to always force crawling node_modules when searching for extensions and starting jsreport
-	extensionsLocationCache: true
+	useExtensionsLocationCache: true
 })
 ```
 
