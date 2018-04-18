@@ -190,6 +190,8 @@ describe('reporter', () => {
 
       await reporter.init()
 
+      schema.properties.enabled = { type: 'boolean' }
+
       reporter.optionsValidator.getSchema('test').should.be.eql(Object.assign({
         $schema: reporter.optionsValidator.schemaVersion
       }, schema))
@@ -213,6 +215,29 @@ describe('reporter', () => {
           enabled: { type: 'boolean' }
         }
       }))
+    })
+
+    it('should allow extensions to extend array values of root schema', async () => {
+      const reporter = core({ rootDirectory: path.join(__dirname) })
+
+      reporter.use({
+        name: 'test',
+        optionsSchema: {
+          store: {
+            type: 'object',
+            properties: {
+              provider: { type: 'string', enum: ['fs'] }
+            }
+          }
+        },
+        main: (reporter, definition) => {}
+      })
+
+      await reporter.init()
+
+      const rootSchema = reporter.optionsValidator.getRootSchema()
+
+      rootSchema.properties.store.properties.provider.enum.should.be.eql(['memory', 'fs'])
     })
 
     it('should validate and coerce options of custom extension', async () => {

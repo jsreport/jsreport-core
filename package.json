@@ -16,6 +16,7 @@
     "bluebird": "3.5.1",
     "camelcase": "5.0.0",
     "debug": "3.1.0",
+    "deepmerge": "2.1.0",
     "has-own-deep": "1.1.0",
     "listener-collection": "1.2.0",
     "lodash.get": "4.4.2",
