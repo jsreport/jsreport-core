@@ -195,6 +195,26 @@ describe('reporter', () => {
       }, schema))
     })
 
+    it('should register default json schema when extension does not use optionsSchema', async () => {
+      const reporter = core({ rootDirectory: path.join(__dirname) })
+
+      reporter.use({
+        name: 'test',
+        main: (reporter, definition) => {}
+      })
+
+      await reporter.init()
+
+      reporter.optionsValidator.getSchema('test').should.be.eql(Object.assign({
+        $schema: reporter.optionsValidator.schemaVersion
+      }, {
+        type: 'object',
+        properties: {
+          enabled: { type: 'boolean' }
+        }
+      }))
+    })
+
     it('should validate and coerce options of custom extension', async () => {
       const reporter = core({ rootDirectory: path.join(__dirname) })
       let options
