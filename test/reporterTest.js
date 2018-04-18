@@ -503,7 +503,7 @@ describe('reporter', () => {
     reporter.options.httpPort.toString().should.be.eql('4000')
   })
 
-  it('should use options provided as argument  when loadConfig', () => {
+  it('should use options provided as argument  when loadConfig', async () => {
     delete process.env.httpPort
     process.env.NODE_ENV = 'development'
     const reporter = core({
@@ -512,8 +512,32 @@ describe('reporter', () => {
       httpPort: 6000
     })
 
-    reporter.init()
+    await reporter.init()
     reporter.options.httpPort.should.be.eql(6000)
+  })
+
+  it('should support camel case alias for configuration of extensions', async () => {
+    const reporter = core({
+      rootDirectory: path.join(__dirname),
+      extensions: {
+        customExtension: {
+          testing: true
+        }
+      }
+    })
+
+    let extensionOptions
+
+    reporter.use({
+      name: 'custom-extension',
+      main: function (reporter, definition) {
+        extensionOptions = definition.options
+      }
+    })
+
+    await reporter.init()
+
+    extensionOptions.testing.should.be.true()
   })
 
   it('should skip extension with enabled === false in config', async () => {
