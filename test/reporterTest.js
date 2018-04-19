@@ -304,6 +304,37 @@ describe('reporter', () => {
       options.allowedModules.should.be.eql(['request', 'lodash', 'moment'])
     })
 
+    it('should validate and keep date object of custom extension', async () => {
+      const reporter = core({ rootDirectory: path.join(__dirname) })
+
+      let options
+
+      reporter.use({
+        name: 'test',
+        optionsSchema: {
+          extensions: {
+            test: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                modificationDate: { '$jsreport-acceptsDate': true }
+              }
+            }
+          }
+        },
+        options: {
+          name: 'testing',
+          modificationDate: new Date()
+        },
+        main: (reporter, definition) => { options = definition.options }
+      })
+
+      await reporter.init()
+
+      options.name.should.be.eql('testing')
+      should(options.modificationDate).be.Date()
+    })
+
     it('should validate and keep buffer object of custom extension', async () => {
       const reporter = core({ rootDirectory: path.join(__dirname) })
       let options
