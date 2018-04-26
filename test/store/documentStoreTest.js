@@ -131,6 +131,10 @@ describe('document store', () => {
     return store.collection('templates').insert({ name: '<test' }).should.be.rejected()
   })
 
+  it('insert should fail with empty string in name', async () => {
+    return store.collection('templates').insert({ name: '' }).should.be.rejected()
+  })
+
   it('update should fail with invalid name', async () => {
     await store.collection('templates').insert({ name: 'test' })
 
