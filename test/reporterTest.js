@@ -140,6 +140,44 @@ describe('reporter', () => {
     reporter.logger.transports.loggly.should.be.not.Undefined()
   })
 
+  it('should create custom error', async () => {
+    const reporter = core({
+      discover: false
+    })
+
+    const error = reporter.createError('custom error testing', {
+      code: 'UNAUTHORIZED',
+      weak: true,
+      statusCode: 401
+    })
+
+    error.should.be.Error()
+    error.code.should.be.eql('UNAUTHORIZED')
+    error.weak.should.be.eql(true)
+    error.statusCode.should.be.eql(401)
+  })
+
+  it('should create custom error based on previous one', async () => {
+    const reporter = core({
+      discover: false
+    })
+
+    const error = reporter.createError('custom error testing', {
+      code: 'UNAUTHORIZED',
+      weak: true,
+      statusCode: 401,
+      original: new Error('original error')
+    })
+
+    error.should.be.Error()
+    error.code.should.be.eql('UNAUTHORIZED')
+    error.weak.should.be.eql(true)
+    error.statusCode.should.be.eql(401)
+    error.message.includes('custom error testing').should.be.eql(true)
+    error.message.includes('original error').should.be.eql(true)
+    error.stack.includes('original error').should.be.eql(true)
+  })
+
   it('should be able to render html without any extension applied using promises', async () => {
     const reporter = core({ discover: false })
 
