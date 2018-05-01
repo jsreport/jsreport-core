@@ -115,6 +115,25 @@ describe('sandbox', () => {
     restore().a.b.should.be.ok()
   })
 
+  it('be able to stringify object when non-existent properties are configured', () => {
+    const { sandbox } = safeSandbox({
+      a: { b: 'foo' }
+    }, {
+      propertiesConfig: {
+        'a.d': {
+          sandboxHidden: true
+        },
+        'a.c': {
+          sandboxReadOnly: true
+        }
+      }
+    })
+
+    should.doesNotThrow(() => {
+      JSON.stringify(sandbox)
+    })
+  })
+
   it('should prevent constructor hacks', () => {
     const { run } = safeSandbox({})
     should.throws(() => run(`this.constructor.constructor('return process')().exit()`))
