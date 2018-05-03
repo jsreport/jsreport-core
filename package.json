@@ -68,7 +68,7 @@
     "url": "git+ssh://git@github.com/jsreport/jsreport-core.git"
   },
   "engines": {
-    "node": ">=8.6"
+    "node": ">=8.9"
   },
   "standard": {
     "globals": [
