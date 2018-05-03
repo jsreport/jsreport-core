@@ -1,55 +1,22 @@
-var assert = require('assert')
-var path = require('path')
-var fs = require('fs')
-var util = require('../../lib/util/util.js')
-var FileSystem = require('../../lib/blobStorage/fileSystemBlobStorage.js')
-var Buffer = require('safe-buffer').Buffer
-var tmpDir = require('os').tmpdir()
-var Readable = require('stream').Readable
+const path = require('path')
+const fs = require('fs')
+const util = require('../../lib/util/util.js')
+const FileSystem = require('../../lib/blobStorage/fileSystemBlobStorageProvider.js')
+const tmpDir = require('os').tmpdir()
+const common = require('./common.js')
 
-describe('fileSystemBlobStorage', function () {
-  beforeEach(function () {
+describe('fileSystemBlobStorage', () => {
+  let blobStorage
+
+  beforeEach(() => {
     util.deleteFiles(path.join(tmpDir, 'test-output'))
 
     if (!fs.existsSync(path.join(tmpDir, 'test-output'))) {
       fs.mkdirSync(path.join(tmpDir, 'test-output'))
     }
 
-    this.blobStorage = new FileSystem({dataDirectory: path.join(tmpDir, 'test-output')})
+    blobStorage = FileSystem({blobStorage: {dataDirectory: path.join(tmpDir, 'test-output')}})
   })
 
-  afterEach(function () {
-  })
-
-  it('write and read should result into equal string', function (done) {
-    var self = this
-
-    var ms = new Readable()
-    ms.push('Hey')
-    ms.push(null)
-
-    var blobName = 'blobname'
-
-    self.blobStorage.write(blobName, new Buffer('Hula'), function (err) {
-      if (err) {
-        return done(err)
-      }
-
-      self.blobStorage.read(blobName, function (er, stream) {
-        if (err) {
-          return done(err)
-        }
-
-        var content = ''
-        stream.resume()
-        stream.on('data', function (buf) {
-          content += buf.toString()
-        })
-        stream.on('end', function () {
-          assert.equal('Hula', content)
-          done()
-        })
-      })
-    })
-  })
+  common(() => blobStorage)
 })

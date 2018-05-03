@@ -1,19 +1,17 @@
-var TestLogger = module.exports = function () {
+module.exports = () => ({
+  info (m) {
+    console.log(m)
+  },
 
-}
+  warn (m) {
+    console.log(m)
+  },
 
-TestLogger.prototype.info = function (m) {
-  console.log(m)
-}
+  error (m) {
+    console.log(m)
+  },
 
-TestLogger.prototype.warn = function (m) {
-  console.log(m)
-}
-
-TestLogger.prototype.error = function (m) {
-  console.log(m)
-}
-
-TestLogger.prototype.debug = function (m) {
-  console.log(m)
-}
+  debug (m) {
+    console.log(m)
+  }
+})

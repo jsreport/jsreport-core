@@ -1,98 +1,123 @@
-var core = require('../../index.js')
-require('should')
-var _ = require('underscore')
+const core = require('../../index.js')
+const should = require('should')
+const createRequest = require('../../lib/render/request')
 
-describe('render', function () {
-  var reporter
-  beforeEach(function (done) {
-    reporter = core({discover: false})
-    reporter.init().then(function () {
-      done()
-    }).catch(done)
-  })
+describe('render', () => {
+  let reporter
 
-  it('should render simple none engine for html recipe', function (done) {
-    reporter.render({template: {engine: 'none', content: 'foo', recipe: 'html'}}).then(function (response) {
-      response.content.toString().should.be.eql('foo')
-      done()
-    }).catch(done)
-  })
+  beforeEach(() => {
+    reporter = core({ discover: false })
 
-  it('should fail when req.template.recipe not specified', function (done) {
-    reporter.render({template: {content: 'foo2', engine: 'none'}}).then(function () {
-      done(new Error('It should have failed'))
-    }).catch(function (err) {
-      err.message.should.containEql('Recipe')
-      done()
-    })
-  })
+    reporter.use({
+      name: 'test',
+      main: function (reporter, definition) {
+        reporter.documentStore.registerComplexType('ChromeType', {
+          printBackground: { type: 'Edm.Boolean' },
+          timeout: { type: 'Edm.Int32' }
+        })
 
-  it('should fail when req.template.engine not specified', function (done) {
-    reporter.render({template: {content: 'foo2', recipe: 'html'}}).then(function () {
-      done(new Error('It should have failed'))
-    }).catch(function (err) {
-      err.message.should.containEql('Engine')
-      done()
-    })
-  })
-
-  it('should fail when req.template.recipe not found', function (done) {
-    reporter.render({template: {content: 'foo2', engine: 'none', recipe: 'foo'}}).then(function () {
-      done(new Error('It should have failed'))
-    }).catch(function (err) {
-      err.message.should.containEql('Recipe')
-      done()
-    })
-  })
-
-  it('should fail when req.template.engine not found', function (done) {
-    reporter.render({template: {content: 'foo2', engine: 'foo', recipe: 'html'}}).then(function () {
-      done(new Error('It should have failed'))
-    }).catch(function (err) {
-      err.message.should.containEql('Engine')
-      done()
-    })
-  })
-
-  it('should add headers into the response', function (done) {
-    done = _.once(done)
-    reporter.beforeRenderListeners.add('test', function (req, res) {
-      if (!res.headers) {
-        return done(new Error('Should add headers into response'))
+        reporter.documentStore.model.entityTypes['TemplateType'].chrome = { type: 'jsreport.ChromeType' }
       }
     })
-    reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}}).then(function (response) {
-      done()
-    }).catch(done)
+
+    return reporter.init()
   })
 
-  it('should call listeners in render', function () {
+  it('should validate and coerce template input according to template type schema', async () => {
+    let request
+
+    reporter.beforeRenderListeners.add('test', (req) => {
+      request = req
+    })
+
+    await reporter.render({
+      template: {
+        engine: 'none',
+        content: 'foo',
+        recipe: 'html',
+        chrome: {
+          printBackground: 'true',
+          timeout: '10000'
+        }
+      }
+    })
+
+    request.template.engine.should.be.eql('none')
+    request.template.chrome.printBackground.should.be.true()
+    request.template.chrome.timeout.should.be.eql(10000)
+  })
+
+  it('should fail validation of template input according to template type schema', async () => {
+    return reporter.render({
+      template: {
+        engine: 'none',
+        content: 'foo',
+        recipe: 'html',
+        chrome: {
+          printBackground: 3000,
+          timeout: 'invalid'
+        }
+      }
+    }).should.be.rejectedWith(/does not match the defined schema/)
+  })
+
+  it('should render simple none engine for html recipe', async () => {
+    const response = await reporter.render({template: {engine: 'none', content: 'foo', recipe: 'html'}})
+    response.content.toString().should.be.eql('foo')
+  })
+
+  it('should fail when req.template.recipe not specified', async () => {
+    try {
+      await reporter.render({template: {content: 'foo2', engine: 'none'}})
+      throw new Error('It should have failed')
+    } catch (e) {
+      e.message.should.containEql('Recipe')
+    }
+  })
+
+  it('should fail when req.template.engine not specified', async () => {
+    try {
+      await reporter.render({template: {content: 'foo2', recipe: 'html'}})
+      throw new Error('It should have failed')
+    } catch (e) {
+      e.message.should.containEql('Engine')
+    }
+  })
+
+  it('should fail when req.template.recipe not found', async () => {
+    try {
+      await reporter.render({template: {content: 'foo2', engine: 'none', recipe: 'foo'}})
+      throw new Error('It should have failed')
+    } catch (e) {
+      e.message.should.containEql('Recipe')
+    }
+  })
+
+  it('should fail when req.template.engine not found', async () => {
+    try {
+      await reporter.render({template: {content: 'foo2', engine: 'foo', recipe: 'html'}})
+      throw new Error('It should have failed')
+    } catch (e) {
+      e.message.should.containEql('Engine')
+    }
+  })
+
+  it('should call listeners in render', async () => {
     var listenersCall = []
-    reporter.beforeRenderListeners.add('test', this, function () {
-      listenersCall.push('before')
-    })
 
-    reporter.validateRenderListeners.add('test', this, function () {
-      listenersCall.push('validateRender')
-    })
+    reporter.beforeRenderListeners.add('test', this, () => listenersCall.push('before'))
+    reporter.validateRenderListeners.add('test', this, () => listenersCall.push('validateRender'))
+    reporter.afterTemplatingEnginesExecutedListeners.add('test', this, () => listenersCall.push('afterTemplatingEnginesExecuted'))
+    reporter.afterRenderListeners.add('test', this, () => listenersCall.push('after'))
 
-    reporter.afterTemplatingEnginesExecutedListeners.add('test', this, function () {
-      listenersCall.push('afterTemplatingEnginesExecuted')
-    })
-
-    reporter.afterRenderListeners.add('test', this, function () {
-      listenersCall.push('after')
-    })
-
-    return reporter.render({template: {content: 'Hey', engine: 'none', recipe: 'html'}}).then(function (resp) {
-      listenersCall[0].should.be.eql('before')
-      listenersCall[1].should.be.eql('validateRender')
-      listenersCall[2].should.be.eql('afterTemplatingEnginesExecuted')
-      listenersCall[3].should.be.eql('after')
-    })
+    await reporter.render({template: {content: 'Hey', engine: 'none', recipe: 'html'}})
+    listenersCall[0].should.be.eql('before')
+    listenersCall[1].should.be.eql('validateRender')
+    listenersCall[2].should.be.eql('afterTemplatingEnginesExecuted')
+    listenersCall[3].should.be.eql('after')
   })
 
-  it('should call renderErrorListeners', function (done) {
+  it('should call renderErrorListeners', async () => {
     reporter.beforeRenderListeners.add('test', function (req, res) {
       throw new Error('intentional')
     })
@@ -102,25 +127,97 @@ describe('render', function () {
       loggedError = e.message
     })
 
-    reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}}).then(function () {
-      done(new Error('it should have failed'))
-    }).catch(function () {
+    try {
+      await reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}})
+    } catch (e) {
       loggedError.should.be.eql('intentional')
-      done()
-    })
+    }
   })
 
-  it('should be able to hook to debug logs', function (done) {
-    var messages = []
-    reporter.beforeRenderListeners.add('test', function (req, res) {
-      req.logger.rewriters.push(function (level, msg, meta) {
-        messages.push(msg)
-      })
+  it('should allow customize report name', async () => {
+    const res = await reporter.render({
+      template: {
+        engine: 'none',
+        content: 'none',
+        recipe: 'html'
+      },
+      options: { reportName: 'custom-report-name' }
     })
 
-    reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}}).then(function () {
-      messages.should.containEql('Executing recipe html')
-      done()
-    }).catch(done)
+    res.meta.reportName.should.be.eql('custom-report-name')
+  })
+
+  it('should provide logs in response meta', async () => {
+    reporter.beforeRenderListeners.add('test', (req, res) => {
+      reporter.logger.debug('foo', req)
+    })
+
+    const response = await reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}})
+    response.meta.logs.find((l) => l.message === 'foo').should.be.ok()
+  })
+
+  it('should propagate logs to the parent request', async () => {
+    const parentReq = createRequest({
+      template: {},
+      options: {},
+      context: {
+        logs: [{message: 'hello'}]
+      }
+    })
+
+    await reporter.render({
+      template: { content: 'Hey', engine: 'none', recipe: 'html' }
+    }, parentReq)
+
+    parentReq.context.logs.map(l => l.message).should.containEql('Rendering engine none')
+  })
+
+  it('should add isChildRequest to the nested render', async () => {
+    let context
+    reporter.beforeRenderListeners.add('test', this, (req) => (context = req.context))
+
+    const parentReq = createRequest({
+      template: {},
+      options: {},
+      context: {
+        logs: []
+      }
+    })
+
+    await reporter.render({
+      template: { content: 'Hey', engine: 'none', recipe: 'html' }
+    }, parentReq)
+
+    context.isChildRequest.should.be.true()
+    should(parentReq.context.isChildRequest).not.be.true()
+  })
+
+  it('should merge parent to the current request', async () => {
+    let data
+    let options
+    reporter.beforeRenderListeners.add('test', this, (req) => {
+      data = req.data
+      options = req.options
+    })
+
+    const parentReq = createRequest({
+      template: {},
+      options: {a: 'a', c: 'c'},
+      data: {a: 'a'},
+      context: {
+        logs: []
+      }
+    })
+
+    await reporter.render({
+      template: { content: 'Hey', engine: 'none', recipe: 'html' }, data: {b: 'b'}, options: {b: 'b', c: 'x'}
+    }, parentReq)
+
+    data.should.have.property('a')
+    data.should.have.property('b')
+    options.should.have.property('a')
+    options.should.have.property('b')
+    options.should.have.property('c')
+    options.c.should.be.eql('x')
   })
 })

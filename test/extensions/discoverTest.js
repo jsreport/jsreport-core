@@ -1,24 +1,21 @@
-var discover = require('../../lib/extensions/discover')
-var Logger = require('../util/testLogger')
-var os = require('os')
+const discover = require('../../lib/extensions/discover')
+const Logger = require('../util/testLogger')
+const os = require('os')
 require('should')
 
-describe('discover', function () {
-  var config
+describe('discover', () => {
+  let config
 
-  beforeEach(function (done) {
+  beforeEach(() => {
     config = {
-      logger: new Logger(),
+      logger: Logger(),
       tempCoreDirectory: os.tmpdir(),
       rootDirectory: __dirname
     }
-    done()
   })
 
-  it('should find the extension', function (done) {
-    discover(config).then(function (extensions) {
-      extensions.should.have.length(1)
-      done()
-    }).catch(done)
+  it('should find the extension', async () => {
+    const extensions = await discover(config)
+    extensions.should.have.length(1)
   })
 })
