@@ -11,6 +11,7 @@
     "test:watch": "mocha --watch --recursive test"
   },
   "dependencies": {
+    "@babel/code-frame": "7.0.0-beta.46",
     "ajv": "6.4.0",
     "app-root-path": "2.0.1",
     "bluebird": "3.5.1",
@@ -30,6 +31,7 @@
     "node.extend": "2.0.0",
     "reap2": "1.0.1",
     "script-manager": "0.7.0",
+    "stack-trace": "0.0.10",
     "streamifier": "0.1.1",
     "unset-value": "1.0.0",
     "vm2": "3.5.2",
