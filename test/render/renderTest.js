@@ -23,6 +23,47 @@ describe('render', () => {
     return reporter.init()
   })
 
+  it('should not be able to pass data as array', async () => {
+    try {
+      await reporter.render({
+        template: {
+          engine: 'none',
+          content: 'foo',
+          recipe: 'html'
+        },
+        data: [{ name: 'item1' }, { name: 'item2' }]
+      })
+
+      throw new Error('it was supposed to fail with error about data not being an object')
+    } catch (e) {
+      e.should.be.Error()
+      e.message.should.match(/^Request data can not be an array/)
+    }
+  })
+
+  it('should not change input data type', async () => {
+    let dataIsArray = false
+
+    reporter.beforeRenderListeners.add('test', (req) => {
+      if (Array.isArray(req.data)) {
+        dataIsArray = true
+      }
+
+      req.data = {}
+    })
+
+    await reporter.render({
+      template: {
+        engine: 'none',
+        content: 'foo',
+        recipe: 'html'
+      },
+      data: [{ name: 'item1' }, { name: 'item2' }]
+    })
+
+    dataIsArray.should.be.True()
+  })
+
   it('should validate and coerce template input according to template type schema', async () => {
     let request
 
