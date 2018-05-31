@@ -443,6 +443,44 @@ describe('reporter', () => {
       options.printBackground.should.be.false()
     })
 
+    it('should validate when extension config is specified both in top level and inline', async () => {
+      const reporter = core({
+        rootDirectory: path.join(__dirname),
+        extensions: {
+          'test': {
+            name: 'testing'
+          }
+        }
+      })
+
+      let options
+
+      reporter.use({
+        name: 'test',
+        optionsSchema: {
+          extensions: {
+            test: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                runtimeName: { type: 'string' }
+              },
+              required: ['name', 'runtimeName']
+            }
+          }
+        },
+        options: {
+          runtimeName: 'testing'
+        },
+        main: (reporter, definition) => { options = definition.options }
+      })
+
+      await reporter.init()
+
+      options.name.should.be.eql('testing')
+      options.runtimeName.should.be.eql('testing')
+    })
+
     it('should reject on invalid options of custom extension', async () => {
       const reporter = core({ rootDirectory: path.join(__dirname) })
 
