@@ -2,15 +2,20 @@ const Request = require('../../lib/render/request.js')
 
 module.exports = (store) => {
   beforeEach(async () => {
-    store().registerEntityType('TemplateType', {
+    store().registerComplexType('CommonPhantomType', {
+      header: { type: 'Edm.String', document: { extension: 'html', engine: true } }
+    })
+
+    store().registerEntityType('CommonTemplateType', {
       _id: { type: 'Edm.String', key: true },
       name: { type: 'Edm.String', publicKey: true },
       content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
       recipe: { type: 'Edm.String' },
-      modificationDate: { type: 'Edm.DateTimeOffset' }
+      modificationDate: { type: 'Edm.DateTimeOffset' },
+      phantom: { type: 'jsreport.CommonPhantomType' }
     })
 
-    store().registerEntitySet('templates', { entityType: 'jsreport.TemplateType', splitIntoDirectories: true })
+    store().registerEntitySet('templates', { entityType: 'jsreport.CommonTemplateType', splitIntoDirectories: true })
     await store().init()
     return store().drop()
   })
@@ -55,19 +60,23 @@ module.exports = (store) => {
   })
 
   it('find should return clones', async () => {
-    await store().collection('templates').insert({ name: 'test', content: 'original' })
+    await store().collection('templates').insert({ name: 'test', content: 'original', phantom: { header: 'original' } })
     const res = await store().collection('templates').find({})
     res[0].content = 'modified'
+    res[0].phantom.header = 'modified'
     const res2 = await store().collection('templates').find({})
     res2[0].content.should.be.eql('original')
+    res2[0].phantom.header.should.be.eql('original')
   })
 
   it('insert should use clones', async () => {
-    const doc = { name: 'test', content: 'original' }
+    const doc = { name: 'test', content: 'original', phantom: { header: 'original' } }
     await store().collection('templates').insert(doc)
     doc.content = 'modified'
+    doc.phantom.header = 'modified'
     const res = await store().collection('templates').find({})
     res[0].content.should.be.eql('original')
+    res[0].phantom.header.should.be.eql('original')
   })
 
   it('skip and limit', async () => {
