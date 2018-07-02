@@ -18,6 +18,75 @@ describe('document store', () => {
     return store.init()
   })
 
+  it('should register internal collection', async () => {
+    const type = {
+      _id: { type: 'Edm.String', key: true },
+      name: { type: 'Edm.String', publicKey: true }
+    }
+
+    store.registerEntityType('internalType', type)
+
+    store.registerEntitySet('internalCol', {
+      entityType: 'jsreport.internalType',
+      internal: true,
+      splitIntoDirectories: true
+    })
+
+    await store.init()
+
+    should(store.internalCollection('internalCol')).be.ok()
+  })
+
+  it('should throw error when getting into duplicate with public and internal collection', async () => {
+    const type = {
+      _id: { type: 'Edm.String', key: true },
+      name: { type: 'Edm.String', publicKey: true }
+    }
+
+    store.registerEntityType('someType', type)
+
+    should.throws(() => {
+      store.registerEntitySet('uniqueCol', {
+        entityType: 'jsreport.someType',
+        splitIntoDirectories: true
+      })
+
+      store.registerEntitySet('uniqueCol', {
+        entityType: 'jsreport.someType',
+        internal: true,
+        splitIntoDirectories: true
+      })
+    }, /can not be registered as internal entity because it was register as public entity/)
+  })
+
+  common(() => store)
+
+  it('insert should fail with invalid name', async () => {
+    return store.collection('templates').insert({ name: '<test' }).should.be.rejected()
+  })
+
+  it('insert should fail with empty string in name', async () => {
+    return store.collection('templates').insert({ name: '' }).should.be.rejected()
+  })
+
+  it('update should fail with invalid name', async () => {
+    await store.collection('templates').insert({ name: 'test' })
+
+    return store.collection('templates').update({ name: 'test' }, { $set: { name: '/foo/other' } }).should.be.rejected()
+  })
+
+  it('findOne should return first item', async () => {
+    await store.collection('templates').insert({ name: 'test' })
+    const t = await store.collection('templates').findOne({ name: 'test' })
+    t.name.should.be.eql('test')
+  })
+
+  it('findOne should return null if no result found', async () => {
+    await store.collection('templates').insert({ name: 'test' })
+    const t = await store.collection('templates').findOne({ name: 'invalid' })
+    should(t).be.null()
+  })
+
   describe('type json schemas', () => {
     beforeEach(() => {
       store.registerEntityType('DemoType', {
@@ -123,33 +192,5 @@ describe('document store', () => {
         }
       })
     })
-  })
-
-  common(() => store)
-
-  it('insert should fail with invalid name', async () => {
-    return store.collection('templates').insert({ name: '<test' }).should.be.rejected()
-  })
-
-  it('insert should fail with empty string in name', async () => {
-    return store.collection('templates').insert({ name: '' }).should.be.rejected()
-  })
-
-  it('update should fail with invalid name', async () => {
-    await store.collection('templates').insert({ name: 'test' })
-
-    return store.collection('templates').update({ name: 'test' }, { $set: { name: '/foo/other' } }).should.be.rejected()
-  })
-
-  it('findOne should return first item', async () => {
-    await store.collection('templates').insert({ name: 'test' })
-    const t = await store.collection('templates').findOne({ name: 'test' })
-    t.name.should.be.eql('test')
-  })
-
-  it('findOne should return null if no result found', async () => {
-    await store.collection('templates').insert({ name: 'test' })
-    const t = await store.collection('templates').findOne({ name: 'invalid' })
-    should(t).be.null()
   })
 })
