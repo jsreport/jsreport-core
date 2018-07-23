@@ -75,4 +75,32 @@ describe('Serializer', () => {
     should(input.b).be.eql(output.b)
     should(output.a).be.eql([1, 2, null, 4])
   })
+
+  it('should let register custom type for serialization', () => {
+    class Demo {
+      constructor (values) {
+        Object.keys(values).forEach((key) => {
+          this[key] = values[key]
+        })
+      }
+    }
+
+    const input = {
+      x: new Demo({ some: 'value' }),
+      y: true
+    }
+
+    serializer.register('DemoType', function check (value) {
+      return value instanceof Demo
+    }, function toBuffer (value) {
+      return JSON.stringify(value)
+    }, function fromBuffer (value) {
+      return new Demo(JSON.parse(value))
+    })
+
+    const output = serializer.deserialize(serializer.serialize(input))
+
+    should(output.y).be.eql(input.y)
+    should(output.x).be.instanceof(Demo)
+  })
 })
