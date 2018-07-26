@@ -11,6 +11,7 @@ module.exports = (store) => {
       name: { type: 'Edm.String', publicKey: true },
       content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
       recipe: { type: 'Edm.String' },
+      engine: { type: 'Edm.String' },
       modificationDate: { type: 'Edm.DateTimeOffset' },
       phantom: { type: 'jsreport.CommonPhantomType' }
     }
