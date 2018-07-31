@@ -271,7 +271,7 @@ jsreport currently support these main listeners
 - `closeListeners()` called when jsreport is about to be closed, you will usually put here some code that clean up some resource
 
 ## Studio
-jsreport includes also visual html studio and rest API. This is provided through [jsreport-express](https://github.com/jsreport/jsreport-express) extension. See its documentation for details.
+jsreport includes also visual html studio and rest API. This is provided through two extensions, [jsreport-express](https://github.com/jsreport/jsreport-express) extension to have a web server available and [jsreport-studio](https://github.com/jsreport/jsreport-studio) for the web UI, both extensions should be installed in order to have studio ready. See the documentation of each extension for details.
 
 ## Template store
 `jsreport-core` includes API for persisting and accessing report templates. This API is then used by extensions mainly in combination with jsreport [studio](#studio). `jsreport-core` implements just in-memory persistence, but you can add other persistence methods through extensions. See the [list](#store-providers).
