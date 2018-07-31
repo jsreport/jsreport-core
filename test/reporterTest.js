@@ -5,7 +5,7 @@ const stdMocks = require('std-mocks')
 const should = require('should')
 const fs = require('fs')
 
-describe.only('reporter', () => {
+describe('reporter', () => {
   function clean () {
     function safeUnlink (p) {
       try {
