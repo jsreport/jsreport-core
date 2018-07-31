@@ -5,6 +5,9 @@ const stdMocks = require('std-mocks')
 const should = require('should')
 const fs = require('fs')
 
+const originalArgs = process.argv
+const originalEnv = process.env
+
 describe('reporter', () => {
   function clean () {
     function safeUnlink (p) {
@@ -22,6 +25,13 @@ describe('reporter', () => {
   }
 
   beforeEach(() => {
+    process.argv = [ ...originalArgs ]
+    process.env = { ...originalEnv }
+
+    if (fs.existsSync(path.join(__dirname, 'jsreport.config.json'))) {
+      fs.unlinkSync(path.join(__dirname, 'jsreport.config.json'))
+    }
+
     Object.keys(process.env).filter(e => e.startsWith('extensions')).forEach((e) => (process.env[e] = null))
     // cleaning transports for each each test
     if (winston.loggers.has('jsreport')) {
@@ -216,6 +226,7 @@ describe('reporter', () => {
   describe('options json schema', () => {
     it('should register optionsSchema of custom extension', async () => {
       const reporter = core({ rootDirectory: path.join(__dirname) })
+
       const schema = {
         type: 'object',
         properties: {
@@ -642,6 +653,20 @@ describe('reporter', () => {
     reporter.options.httpPort.toString().should.be.eql('4000')
   })
 
+  it('should parse both separators of env options into reporter options', async () => {
+    process.env['some_object'] = 'some'
+    process.env['another:object'] = 'another'
+
+    const reporter = core({
+      rootDirectory: path.join(__dirname),
+      loadConfig: true
+    })
+
+    await reporter.init()
+    reporter.options.some.object.should.be.eql('some')
+    reporter.options.another.object.should.be.eql('another')
+  })
+
   it('should use options provided as argument  when loadConfig', async () => {
     delete process.env.httpPort
     process.env.NODE_ENV = 'development'
@@ -653,6 +678,29 @@ describe('reporter', () => {
 
     await reporter.init()
     reporter.options.httpPort.should.be.eql(6000)
+  })
+
+  it('should load config with nested key for configuration of extensions', async () => {
+    process.env['extensions:custom-extension:cookieSession:secret'] = 'secret'
+
+    const reporter = core({
+      rootDirectory: path.join(__dirname),
+      loadConfig: true
+    })
+
+    let extensionOptions
+
+    reporter.use({
+      name: 'custom-extension',
+      main: function (reporter, definition) {
+        extensionOptions = definition.options
+      }
+    })
+
+    await reporter.init()
+
+    reporter.options.extensions['custom-extension'].cookieSession.secret.should.be.eql('secret')
+    extensionOptions.cookieSession.secret.should.be.eql('secret')
   })
 
   it('should support camel case alias for configuration of extensions', async () => {
@@ -679,6 +727,77 @@ describe('reporter', () => {
     extensionOptions.testing.should.be.true()
   })
 
+  it('should merge camel case config from env over config file values for configuration of extensions', async () => {
+    fs.writeFileSync(path.join(__dirname, 'jsreport.config.json'), JSON.stringify({ extensions: { 'custom-extension': { foo: 'fromfile' } } }))
+    process.env['extensions_customExtension_foo'] = 'fromenv'
+    const reporter = core({
+      rootDirectory: path.join(__dirname),
+      loadConfig: true
+    })
+
+    let extensionOptions
+
+    reporter.use({
+      name: 'custom-extension',
+      main: function (reporter, definition) {
+        extensionOptions = definition.options
+      }
+    })
+
+    await reporter.init()
+    extensionOptions.foo.should.be.eql('fromenv')
+  })
+
+  it('should merge camel case config from arg over env values for configuration of extensions', async () => {
+    process.argv.push('--extensions.customExtension.foo')
+    process.argv.push('fromarg')
+
+    process.env['extensions_customExtension_foo'] = 'fromenv'
+    const reporter = core({
+      rootDirectory: path.join(__dirname),
+      loadConfig: true
+    })
+
+    let extensionOptions
+
+    reporter.use({
+      name: 'custom-extension',
+      main: function (reporter, definition) {
+        extensionOptions = definition.options
+      }
+    })
+
+    await reporter.init()
+    extensionOptions.foo.should.be.eql('fromarg')
+  })
+
+  it('should not loose values when using both camel case and normal config from arg values for configuration of extensions', async () => {
+    process.argv.push('--extensions.customExtension.foo')
+    process.argv.push('fromarg-normal')
+    process.argv.push('--extensions.custom-extension.foo')
+    process.argv.push('fromarg-camel')
+    process.argv.push('--extensions.custom-extension.bar')
+    process.argv.push('fromarg2-camel')
+
+    const reporter = core({
+      rootDirectory: path.join(__dirname),
+      loadConfig: true
+    })
+
+    let extensionOptions
+
+    reporter.use({
+      name: 'custom-extension',
+      main: function (reporter, definition) {
+        extensionOptions = definition.options
+      }
+    })
+
+    await reporter.init()
+    extensionOptions.foo.should.be.eql('fromarg-normal')
+    extensionOptions.bar.should.be.eql('fromarg2-camel')
+  })
+
   it('should skip extension with enabled === false in config', async () => {
     const reporter = core({rootDirectory: __dirname, extensions: {test: {enabled: false}}})
     await reporter.init()
@@ -697,6 +816,7 @@ describe('reporter', () => {
     })
 
     await reporter.init()
+
     extensionInitialized.should.be.eql(true)
     reporter.testExtensionInitialized.should.be.ok()
   })
@@ -735,26 +855,5 @@ describe('reporter', () => {
     const reporter = core({ rootDirectory: path.join(__dirname) })
     await reporter.init()
     return reporter.init().should.be.rejected()
-  })
-
-  it('should merge camel case config from env over config file val', async () => {
-    fs.writeFileSync(path.join(__dirname, 'jsreport.config.json'), JSON.stringify({ extensions: { 'custom-extension': { foo: 'fromfile' } } }))
-    process.env['extensions_customExtension_foo'] = 'fromenv'
-    const reporter = core({
-      rootDirectory: path.join(__dirname),
-      loadConfig: true
-    })
-
-    let extensionOptions
-
-    reporter.use({
-      name: 'custom-extension',
-      main: function (reporter, definition) {
-        extensionOptions = definition.options
-      }
-    })
-
-    await reporter.init()
-    extensionOptions.foo.should.be.eql('fromenv')
   })
 })
