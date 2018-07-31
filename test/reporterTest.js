@@ -5,15 +5,8 @@ const stdMocks = require('std-mocks')
 const should = require('should')
 const fs = require('fs')
 
-describe('reporter', () => {
-  beforeEach(() => {
-    // cleaning transports for each each test
-    if (winston.loggers.has('jsreport')) {
-      Object.keys(winston.loggers.get('jsreport').transports).forEach((transpName) => {
-        winston.loggers.get('jsreport').remove(transpName)
-      })
-    }
-
+describe.only('reporter', () => {
+  function clean () {
     function safeUnlink (p) {
       try {
         fs.unlinkSync(p)
@@ -26,7 +19,21 @@ describe('reporter', () => {
     safeUnlink(path.join(__dirname, 'dev.config.json'))
     safeUnlink(path.join(__dirname, 'jsreport.config.json'))
     safeUnlink(path.join(__dirname, 'custom.config.json'))
+  }
+
+  beforeEach(() => {
+    Object.keys(process.env).filter(e => e.startsWith('extensions')).forEach((e) => (process.env[e] = null))
+    // cleaning transports for each each test
+    if (winston.loggers.has('jsreport')) {
+      Object.keys(winston.loggers.get('jsreport').transports).forEach((transpName) => {
+        winston.loggers.get('jsreport').remove(transpName)
+      })
+    }
+
+    clean()
   })
+
+  afterEach(() => clean())
 
   it('should not log to console by default', async () => {
     const reporter = core({ discover: false })
@@ -485,10 +492,10 @@ describe('reporter', () => {
       const reporter = core({ rootDirectory: path.join(__dirname) })
 
       reporter.use({
-        name: 'test',
+        name: 'custom',
         optionsSchema: {
           extensions: {
-            test: {
+            custom: {
               type: 'object',
               properties: {
                 printBackground: { type: 'boolean' }
@@ -728,5 +735,26 @@ describe('reporter', () => {
     const reporter = core({ rootDirectory: path.join(__dirname) })
     await reporter.init()
     return reporter.init().should.be.rejected()
+  })
+
+  it('should merge camel case config from env over config file val', async () => {
+    fs.writeFileSync(path.join(__dirname, 'jsreport.config.json'), JSON.stringify({ extensions: { 'custom-extension': { foo: 'fromfile' } } }))
+    process.env['extensions_customExtension_foo'] = 'fromenv'
+    const reporter = core({
+      rootDirectory: path.join(__dirname),
+      loadConfig: true
+    })
+
+    let extensionOptions
+
+    reporter.use({
+      name: 'custom-extension',
+      main: function (reporter, definition) {
+        extensionOptions = definition.options
+      }
+    })
+
+    await reporter.init()
+    extensionOptions.foo.should.be.eql('fromenv')
   })
 })
