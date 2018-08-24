@@ -89,7 +89,7 @@ describe('sandbox', () => {
     should.throws(() => run(`a.b = 1`))
   })
 
-  it('should make props readonly recursively', () => {
+  it('should make props readonly one level recursively', () => {
     const { run } = safeSandbox({ a: { b: { c: 'foo' } } }, {
       propertiesConfig: {
         'a.b': {
@@ -98,6 +98,31 @@ describe('sandbox', () => {
       }
     })
 
+    should.throws(() => run(`a.b.c = 1`))
+  })
+
+  it('should allow configure top level and inner level properties at the same time', () => {
+    let isHidden = false
+
+    const { run } = safeSandbox({
+      a: { b: { c: 'foo' } },
+      check: (result) => {
+        isHidden = result
+      }
+    }, {
+      propertiesConfig: {
+        'a.b': {
+          sandboxReadOnly: true
+        },
+        'a.b.c': {
+          sandboxHidden: true
+        }
+      }
+    })
+
+    run(`check(a.b.c === undefined)`)
+
+    should(isHidden).be.eql(true)
     should.throws(() => run(`a.b.c = 1`))
   })
 
