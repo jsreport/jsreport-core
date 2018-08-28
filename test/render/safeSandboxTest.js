@@ -126,6 +126,29 @@ describe('sandbox', () => {
     should.throws(() => run(`a.b.c = 1`))
   })
 
+  it('should not fail when configuring top level and inner level properties but parent value is empty', () => {
+    let isHidden = false
+
+    const { run } = safeSandbox({
+      a: {},
+      check: (result) => {
+        isHidden = result
+      }
+    }, {
+      propertiesConfig: {
+        'a.b': {
+          sandboxReadOnly: true
+        },
+        'a.b.c': {
+          sandboxHidden: true
+        }
+      }
+    })
+
+    run(`check(a.b === undefined)`)
+    should(isHidden).be.eql(true)
+  })
+
   it('restore should reveal hidden props', () => {
     const { restore } = safeSandbox({
       a: { b: 'foo' }
