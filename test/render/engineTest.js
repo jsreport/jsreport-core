@@ -6,7 +6,7 @@ const safeSandboxPath = path.join(__dirname, '../../lib/render/safeSandbox')
 
 describe('engine', () => {
   describe('engine with dedicated-process strategy', () => {
-    let scriptManager = ScriptManager()
+    let scriptManager = ScriptManager({ strategy: 'dedicated-process' })
 
     beforeEach((done) => {
       scriptManager.ensureStarted(done)
@@ -550,6 +550,46 @@ describe('engine', () => {
         }
 
         err.should.be.Error()
+        done()
+      })
+    })
+
+    it('should disallow throwing values that are not errors (startup)', (done) => {
+      engine({
+        safeSandboxPath,
+        template: {
+          content: '',
+          helpers: 'throw 2'
+        },
+        engine: path.join(__dirname, 'helpersEngine.js')
+      }, function () {
+      }, function (err, res) {
+        if (!err) {
+          return done(new Error('Should have failed'))
+        }
+
+        err.should.be.Error()
+        err.message.should.containEql('Template execution is trying to use value as an error but value is not valid error')
+        done()
+      })
+    })
+
+    it('should disallow throwing values that are not errors (runtime)', (done) => {
+      engine({
+        safeSandboxPath,
+        template: {
+          content: '',
+          helpers: 'function a() { throw 2 }'
+        },
+        engine: path.join(__dirname, 'helpersEngine.js')
+      }, function () {
+      }, function (err, res) {
+        if (!err) {
+          return done(new Error('Should have failed'))
+        }
+
+        err.should.be.Error()
+        err.message.should.containEql('Template execution is trying to use value as an error but value is not valid error')
         done()
       })
     })
