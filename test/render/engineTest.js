@@ -569,7 +569,7 @@ describe('engine', () => {
         }
 
         err.should.be.Error()
-        err.message.should.containEql('Template execution is trying to use value as an error but value is not valid error')
+        err.message.should.containEql('Template execution threw with non-Error')
         done()
       })
     })
@@ -589,7 +589,7 @@ describe('engine', () => {
         }
 
         err.should.be.Error()
-        err.message.should.containEql('Template execution is trying to use value as an error but value is not valid error')
+        err.message.should.containEql('Template execution threw with non-Error')
         done()
       })
     })
