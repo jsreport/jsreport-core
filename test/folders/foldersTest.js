@@ -20,6 +20,13 @@ describe('folders', function () {
           humanReadableKey: 'shortid',
           splitIntoDirectories: true
         })
+
+        reporter.documentStore.registerEntityType('ReportType', {
+          _id: {type: 'Edm.String', key: true},
+          name: {type: 'Edm.String', publicKey: true}
+        })
+
+        reporter.documentStore.registerEntitySet('reports', {entityType: 'jsreport.ReportType'})
       }
     })
 
@@ -115,5 +122,44 @@ describe('folders', function () {
       }
     }))
     folder.shortid.should.be.eql('b')
+  })
+
+  it('inserting splited entitity into root with reserved name should be blocked', () => {
+    return reporter.documentStore.collection('folders').insert({
+      name: 'reports'
+    }).should.be.rejected()
+  })
+
+  it('inserting splited entitity into nested dir with reserved name should be fine', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'ok',
+      shortid: 'ok'
+    })
+    return reporter.documentStore.collection('folders').insert({
+      name: 'reports',
+      folder: {
+        shortid: 'ok'
+      }
+    })
+  })
+
+  it('inserting splitted entity should be always fine', () => {
+    return reporter.documentStore.collection('reports').insert({
+      name: 'reports'
+    })
+  })
+
+  it('inserting splited entity into root with not reserved name should be fine', () => {
+    return reporter.documentStore.collection('folders').insert({
+      name: 'templates'
+    })
+  })
+
+  it('renaming splited entitity to reserved name should be be rejected', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'ok',
+      shortid: 'ok'
+    })
+    return reporter.documentStore.collection('folders').update({ name: 'ok' }, { $set: { name: 'reports' } }).should.be.rejected()
   })
 })
