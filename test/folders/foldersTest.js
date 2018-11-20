@@ -213,4 +213,62 @@ describe('folders', function () {
       folder: { shortid: 'a' }
     }).should.be.rejected()
   })
+
+  it('should not validate duplicated name for the current entity', async () => {
+    await reporter.documentStore.collection('templates').insert({
+      name: 'a',
+      content: 'a'
+    })
+
+    return reporter.documentStore.collection('templates').update({ name: 'a' }, { $set: { name: 'a', content: 'foo' } })
+  })
+
+  it('should reject when updating folder and the name is duplicated', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'a',
+      shortid: 'a'
+    })
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'b',
+      shortid: 'b'
+    })
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'a',
+      shortid: 'aa',
+      folder: { shortid: 'a' }
+    })
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'a',
+      shortid: 'ab',
+      folder: { shortid: 'b' }
+    })
+
+    return reporter.documentStore.collection('templates').update(
+      { shortid: 'ab' },
+      { $set: { folder: { shortid: 'a' } } }).should.be.rejected()
+  })
+
+  it('should reject when moving entity to the root and there is duplicate', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folder',
+      shortid: 'a'
+    })
+    await reporter.documentStore.collection('templates').insert({
+      name: 'a',
+      shortid: 'aa',
+      folder: { shortid: 'a' }
+    })
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'a',
+      shortid: 'ar'
+    })
+
+    return reporter.documentStore.collection('templates').update(
+      { shortid: 'aa' },
+      { $set: { folder: null } }).should.be.rejected()
+  })
 })
