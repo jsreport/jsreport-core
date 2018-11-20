@@ -162,4 +162,55 @@ describe('folders', function () {
     })
     return reporter.documentStore.collection('folders').update({ name: 'ok' }, { $set: { name: 'reports' } }).should.be.rejected()
   })
+
+  it('inserting duplicated entity name into the root should fail', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'duplicate',
+      shortid: 'duplicate'
+    })
+    try {
+      await reporter.documentStore.collection('templates').insert({
+        name: 'duplicate'
+      })
+      throw new Error('Should failed')
+    } catch (e) {
+      e.code.should.be.eql('DUPLICATED_ENTITY')
+    }
+  })
+
+  it('inserting duplicated entity name into differnt folder should work', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'a',
+      shortid: 'a'
+    })
+    await reporter.documentStore.collection('folders').insert({
+      name: 'b',
+      shortid: 'b'
+    })
+    await reporter.documentStore.collection('templates').insert({
+      name: 'duplicate',
+      folder: { shortid: 'a' }
+    })
+    await reporter.documentStore.collection('templates').insert({
+      name: 'duplicate',
+      folder: { shortid: 'b' }
+    })
+  })
+
+  it('inserting duplicated entity name into the nested should fail', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'a',
+      shortid: 'a'
+    })
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'duplicate',
+      folder: { shortid: 'a' }
+    })
+
+    return reporter.documentStore.collection('templates').insert({
+      name: 'duplicate',
+      folder: { shortid: 'a' }
+    }).should.be.rejected()
+  })
 })
