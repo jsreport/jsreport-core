@@ -6,7 +6,7 @@ const safeSandboxPath = path.join(__dirname, '../../lib/render/safeSandbox')
 
 describe('engine', () => {
   describe('engine with dedicated-process strategy', () => {
-    let scriptManager = ScriptManager({ strategy: 'dedicated-process' })
+    const scriptManager = ScriptManager({ strategy: 'dedicated-process' })
 
     beforeEach((done) => {
       scriptManager.ensureStarted(done)
@@ -17,7 +17,7 @@ describe('engine', () => {
   })
 
   describe('engine with http-server strategy', () => {
-    let scriptManager = ScriptManager({ strategy: 'http-server' })
+    const scriptManager = ScriptManager({ strategy: 'http-server' })
 
     beforeEach((done) => {
       scriptManager.ensureStarted(done)
@@ -29,7 +29,7 @@ describe('engine', () => {
   })
 
   describe('engine with in-process strategy', function () {
-    let scriptManager = ScriptManager({ strategy: 'in-process' })
+    const scriptManager = ScriptManager({ strategy: 'in-process' })
 
     beforeEach((done) => {
       scriptManager.ensureStarted(done)

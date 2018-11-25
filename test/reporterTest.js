@@ -76,7 +76,7 @@ describe('reporter', () => {
       }
     })
     stdMocks.restore()
-    let stdoutContent = stdMocks.flush()
+    const stdoutContent = stdMocks.flush()
     stdoutContent.stdout.length.should.be.eql(0)
 
     const allTransportsAreSilent = Object.keys(reporter.logger.transports).every(function (transportName) {
