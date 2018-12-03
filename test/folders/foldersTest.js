@@ -2,35 +2,39 @@ const should = require('should')
 const jsreport = require('../../')
 const RenderRequest = require('../../lib/render/request')
 
+function init (options) {
+  const reporter = jsreport({ templatingEngines: { strategy: 'in-process' }, migrateEntitySetsToFolders: false, ...options })
+  reporter.use({
+    name: 'templates',
+    main: function (reporter, definition) {
+      Object.assign(reporter.documentStore.model.entityTypes.TemplateType, {
+        _id: { type: 'Edm.String', key: true },
+        name: { type: 'Edm.String', publicKey: true }
+      })
+
+      reporter.documentStore.registerEntitySet('templates', {
+        entityType: 'jsreport.TemplateType',
+        humanReadableKey: 'shortid',
+        splitIntoDirectories: true
+      })
+
+      reporter.documentStore.registerEntityType('ReportType', {
+        _id: {type: 'Edm.String', key: true},
+        name: {type: 'Edm.String', publicKey: true}
+      })
+
+      reporter.documentStore.registerEntitySet('reports', {entityType: 'jsreport.ReportType'})
+    }
+  })
+
+  return reporter.init()
+}
+
 describe('folders', function () {
   let reporter
 
-  beforeEach(() => {
-    reporter = jsreport({ templatingEngines: { strategy: 'in-process' } })
-    reporter.use({
-      name: 'templates',
-      main: function (reporter, definition) {
-        Object.assign(reporter.documentStore.model.entityTypes.TemplateType, {
-          _id: { type: 'Edm.String', key: true },
-          name: { type: 'Edm.String', publicKey: true }
-        })
-
-        reporter.documentStore.registerEntitySet('templates', {
-          entityType: 'jsreport.TemplateType',
-          humanReadableKey: 'shortid',
-          splitIntoDirectories: true
-        })
-
-        reporter.documentStore.registerEntityType('ReportType', {
-          _id: {type: 'Edm.String', key: true},
-          name: {type: 'Edm.String', publicKey: true}
-        })
-
-        reporter.documentStore.registerEntitySet('reports', {entityType: 'jsreport.ReportType'})
-      }
-    })
-
-    return reporter.init()
+  beforeEach(async () => {
+    reporter = await init()
   })
 
   afterEach(() => reporter.close())
@@ -855,5 +859,21 @@ describe('folders', function () {
       foldersInFolder4.should.eql([])
       foldersInFolder1.should.eql(['folder2'])
     })
+  })
+})
+
+describe('folders migration', () => {
+  let reporter
+
+  beforeEach(async () => {
+    reporter = await init({ migrateEntitySetsToFolders: true })
+  })
+
+  afterEach(() => reporter.close())
+
+  it('should create es folders', async () => {
+    const folders = await reporter.documentStore.collection('folders').find({})
+    folders.should.have.length(1)
+    folders[0].name.should.be.eql('templates')
   })
 })
