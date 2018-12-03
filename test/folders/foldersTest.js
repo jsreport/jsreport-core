@@ -84,6 +84,54 @@ describe('folders', function () {
       templates.should.have.length(0)
     })
 
+    it('getFullPath should return full hierarchy path of entity', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a',
+        shortid: 'a'
+      })
+
+      await reporter.documentStore.collection('folders').insert({
+        name: 'b',
+        shortid: 'b',
+        folder: {
+          shortid: 'a'
+        }
+      })
+
+      const t = await reporter.documentStore.collection('templates').insert({
+        name: 'c',
+        shortid: 'c',
+        folder: {
+          shortid: 'b'
+        }
+      })
+
+      const fullPath = await reporter.folders.getFullPath(t, 'templates')
+      fullPath.should.be.eql('/a/b/c')
+    })
+
+    it('getFullPath should throw when some part of the hierarchy does not exists', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a',
+        shortid: 'a'
+      })
+
+      const t = await reporter.documentStore.collection('templates').insert({
+        name: 'b',
+        shortid: 'b',
+        folder: {
+          shortid: 'none'
+        }
+      })
+
+      try {
+        await reporter.folders.getFullPath(t, 'templates')
+        throw new Error('it was supposed to throw error instead of return')
+      } catch (e) {
+        e.message.includes('Folder with shortid').should.be.True()
+      }
+    })
+
     it('resolveFolderFromPath should resolve folder from absolute path', async () => {
       await reporter.documentStore.collection('folders').insert({
         name: 'a',
