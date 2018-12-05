@@ -919,9 +919,8 @@ describe('folders migration', () => {
 
   afterEach(() => reporter.close())
 
-  it('should create es folders', async () => {
+  it('should not create es folders on empty project', async () => {
     const folders = await reporter.documentStore.collection('folders').find({})
-    folders.should.have.length(1)
-    folders[0].name.should.be.eql('templates')
+    folders.should.have.length(0)
   })
 })
