@@ -231,7 +231,7 @@ describe('folders', function () {
       }
     })
 
-    it('inserting duplicated entity name into differnt folder should work', async () => {
+    it('inserting duplicated entity name into different folder should work', async () => {
       await reporter.documentStore.collection('folders').insert({
         name: 'a',
         shortid: 'a'
@@ -274,6 +274,18 @@ describe('folders', function () {
       })
 
       return reporter.documentStore.collection('templates').update({ name: 'a' }, { $set: { name: 'a', content: 'foo' } })
+    })
+
+    it('duplicate entity name validation should be case insensitive', async () => {
+      await reporter.documentStore.collection('templates').insert({
+        name: 'a',
+        content: 'a'
+      })
+
+      reporter.documentStore.collection('templates').insert({
+        name: 'A',
+        content: 'a'
+      }).should.be.rejected()
     })
   })
 
