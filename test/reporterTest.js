@@ -653,6 +653,21 @@ describe('reporter', () => {
     reporter.options.httpPort.toString().should.be.eql('4000')
   })
 
+  it('should parse env options and sanitize earlier options with schema into reporter options when loadConfig', async () => {
+    process.env.allowLocalFilesAccess = 'true'
+    process.env.NODE_ENV = 'development'
+    const reporter = core({
+      rootDirectory: path.join(__dirname),
+      loadConfig: true
+    })
+
+    reporter.afterConfigLoaded((r) => {
+      r.options.allowLocalFilesAccess.should.be.eql(true)
+    })
+
+    await reporter.init()
+  })
+
   it('should parse both separators of env options into reporter options', async () => {
     process.env['some_object'] = 'some'
     process.env['another:object'] = 'another'
