@@ -25,6 +25,7 @@
     "lodash.groupby": "4.6.0",
     "lodash.omit": "4.5.0",
     "lodash.set": "4.3.2",
+    "lodash.uniqby": "4.7.0",
     "lru-cache": "4.1.1",
     "mingo": "2.1.1",
     "mkdirp": "0.5.1",
