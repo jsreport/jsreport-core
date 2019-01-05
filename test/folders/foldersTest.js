@@ -159,6 +159,32 @@ describe('folders', function () {
       should(folder).be.null()
     })
 
+    it('resolveFolderFromPath should not return folder for un-existing parent', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'b',
+        shortid: 'b'
+      })
+
+      const folder = await reporter.folders.resolveFolderFromPath('/unknown/b')
+      should(folder).be.null()
+    })
+
+    it('resolveFolderFromPath should not return folder for un-existing path', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'b',
+        shortid: 'b'
+      })
+
+      await reporter.documentStore.collection('folders').insert({
+        name: 'd',
+        shortid: 'd',
+        folder: { shortid: 'b' }
+      })
+
+      const folder = await reporter.folders.resolveFolderFromPath('/unknown/b/another/d')
+      should(folder).be.null()
+    })
+
     it('resolveFolderFromPath should resolve folder from relative path', async () => {
       await reporter.documentStore.collection('folders').insert({
         name: 'a',
