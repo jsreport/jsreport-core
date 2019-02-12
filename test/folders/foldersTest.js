@@ -1,14 +1,17 @@
 const should = require('should')
+const nanoid = require('nanoid')
 const jsreport = require('../../')
-const RenderRequest = require('../../lib/render/request')
+const RenderRequest = jsreport.Request
 
 function init (options) {
   const reporter = jsreport({ templatingEngines: { strategy: 'in-process' }, migrateEntitySetsToFolders: false, ...options })
+
   reporter.use({
     name: 'templates',
     main: function (reporter, definition) {
       Object.assign(reporter.documentStore.model.entityTypes.TemplateType, {
         _id: { type: 'Edm.String', key: true },
+        shortid: { type: 'Edm.String' },
         name: { type: 'Edm.String', publicKey: true }
       })
 
@@ -24,6 +27,14 @@ function init (options) {
       })
 
       reporter.documentStore.registerEntitySet('reports', {entityType: 'jsreport.ReportType'})
+
+      reporter.initializeListeners.add('templates-shortid', () => {
+        const col = reporter.documentStore.collection('templates')
+
+        col.beforeInsertListeners.add('templates', (doc) => {
+          doc.shortid = doc.shortid || nanoid(7)
+        })
+      })
     }
   })
 
@@ -268,10 +279,12 @@ describe('folders', function () {
       })
       await reporter.documentStore.collection('templates').insert({
         name: 'duplicate',
+        shortid: 'c',
         folder: { shortid: 'a' }
       })
       await reporter.documentStore.collection('templates').insert({
         name: 'duplicate',
+        shortid: 'd',
         folder: { shortid: 'b' }
       })
     })
@@ -284,11 +297,13 @@ describe('folders', function () {
 
       await reporter.documentStore.collection('templates').insert({
         name: 'duplicate',
+        shortid: 'b',
         folder: { shortid: 'a' }
       })
 
       return reporter.documentStore.collection('templates').insert({
         name: 'duplicate',
+        shortid: 'c',
         folder: { shortid: 'a' }
       }).should.be.rejected()
     })
@@ -296,6 +311,7 @@ describe('folders', function () {
     it('should not validate duplicated name for the current entity', async () => {
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
+        shortid: 'a',
         content: 'a'
       })
 
@@ -305,11 +321,13 @@ describe('folders', function () {
     it('duplicate entity name validation should be case insensitive', async () => {
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
+        shortid: 'a',
         content: 'a'
       })
 
       reporter.documentStore.collection('templates').insert({
         name: 'A',
+        shortid: 'A',
         content: 'a'
       }).should.be.rejected()
     })
@@ -367,25 +385,30 @@ describe('folders', function () {
 
     it('should move file', async () => {
       const folder1 = await reporter.documentStore.collection('folders').insert({
-        name: 'folder1'
+        name: 'folder1',
+        shortid: 'folder1'
       })
 
       const folder2 = await reporter.documentStore.collection('folders').insert({
-        name: 'folder2'
+        name: 'folder2',
+        shortid: 'folder2'
       })
 
       const a = await reporter.documentStore.collection('templates').insert({
         name: 'a',
+        shortid: 'a',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
+        shortid: 'b',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'c',
+        shortid: 'c',
         folder: { shortid: folder2.shortid }
       })
 
@@ -410,25 +433,30 @@ describe('folders', function () {
 
     it('should move folder', async () => {
       const folder1 = await reporter.documentStore.collection('folders').insert({
-        name: 'folder1'
+        name: 'folder1',
+        shortid: 'folder1'
       })
 
       const folder2 = await reporter.documentStore.collection('folders').insert({
-        name: 'folder2'
+        name: 'folder2',
+        shortid: 'folder2'
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
+        shortid: 'a',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
+        shortid: 'b',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'c',
+        shortid: 'c',
         folder: { shortid: folder2.shortid }
       })
 
@@ -467,25 +495,30 @@ describe('folders', function () {
 
     it('should copy file', async () => {
       const folder1 = await reporter.documentStore.collection('folders').insert({
-        name: 'folder1'
+        name: 'folder1',
+        shortid: 'folder1'
       })
 
       const folder2 = await reporter.documentStore.collection('folders').insert({
-        name: 'folder2'
+        name: 'folder2',
+        shortid: 'folder2'
       })
 
       const a = await reporter.documentStore.collection('templates').insert({
         name: 'a',
+        shortid: 'a',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
+        shortid: 'b',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'c',
+        shortid: 'c',
         folder: { shortid: folder2.shortid }
       })
 
@@ -518,26 +551,31 @@ describe('folders', function () {
 
     it('should replace when found duplicate during move file', async () => {
       const folder1 = await reporter.documentStore.collection('folders').insert({
-        name: 'folder1'
+        name: 'folder1',
+        shortid: 'folder1'
       })
 
       const folder2 = await reporter.documentStore.collection('folders').insert({
-        name: 'folder2'
+        name: 'folder2',
+        shortid: 'folder2'
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
+        shortid: 'a',
         folder: { shortid: folder1.shortid }
       })
 
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
+        shortid: 'b',
         content: 'b',
         folder: { shortid: folder1.shortid }
       })
 
       const bInFolder2 = await reporter.documentStore.collection('templates').insert({
         name: 'b',
+        shortid: 'b2',
         content: 'b2',
         folder: { shortid: folder2.shortid }
       })
