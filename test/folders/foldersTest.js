@@ -1,5 +1,4 @@
 const should = require('should')
-const nanoid = require('nanoid')
 const jsreport = require('../../')
 const RenderRequest = jsreport.Request
 
@@ -10,31 +9,19 @@ function init (options) {
     name: 'templates',
     main: function (reporter, definition) {
       Object.assign(reporter.documentStore.model.entityTypes.TemplateType, {
-        _id: { type: 'Edm.String', key: true },
-        shortid: { type: 'Edm.String' },
         name: { type: 'Edm.String', publicKey: true }
       })
 
       reporter.documentStore.registerEntitySet('templates', {
         entityType: 'jsreport.TemplateType',
-        humanReadableKey: 'shortid',
         splitIntoDirectories: true
       })
 
       reporter.documentStore.registerEntityType('ReportType', {
-        _id: {type: 'Edm.String', key: true},
-        name: {type: 'Edm.String', publicKey: true}
+        name: { type: 'Edm.String', publicKey: true }
       })
 
       reporter.documentStore.registerEntitySet('reports', {entityType: 'jsreport.ReportType'})
-
-      reporter.initializeListeners.add('templates-shortid', () => {
-        const col = reporter.documentStore.collection('templates')
-
-        col.beforeInsertListeners.add('templates', (doc) => {
-          doc.shortid = doc.shortid || nanoid(7)
-        })
-      })
     }
   })
 
