@@ -253,6 +253,18 @@ describe('folders', function () {
       return reporter.documentStore.collection('folders').update({ name: 'ok' }, { $set: { name: 'reports' } }).should.be.rejected()
     })
 
+    it('upsert reserved name should be rejected', async () => {
+      return reporter.documentStore.collection('folders').update({
+        name: 'reports'
+      }, {
+        $set: {
+          name: 'reports'
+        }
+      }, {
+        upsert: true
+      }).should.be.rejected()
+    })
+
     it('inserting duplicated entity name into the root should fail', async () => {
       await reporter.documentStore.collection('folders').insert({
         name: 'duplicate',
@@ -261,6 +273,29 @@ describe('folders', function () {
       try {
         await reporter.documentStore.collection('templates').insert({
           name: 'duplicate'
+        })
+        throw new Error('Should failed')
+      } catch (e) {
+        e.code.should.be.eql('DUPLICATED_ENTITY')
+      }
+    })
+
+    it('upsert duplicated entity name into the root should fail', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'duplicate',
+        shortid: 'duplicate'
+      })
+
+      try {
+        await reporter.documentStore.collection('templates').update({
+          name: 'duplicate'
+        }, {
+          $set: {
+            name: 'duplicate',
+            shortid: 'duplicate2'
+          }
+        }, {
+          upsert: true
         })
         throw new Error('Should failed')
       } catch (e) {
@@ -289,6 +324,33 @@ describe('folders', function () {
       })
     })
 
+    it('upsert duplicated entity name into different folder should work', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a',
+        shortid: 'a'
+      })
+      await reporter.documentStore.collection('folders').insert({
+        name: 'b',
+        shortid: 'b'
+      })
+      await reporter.documentStore.collection('templates').insert({
+        name: 'duplicate',
+        shortid: 'c',
+        folder: { shortid: 'a' }
+      })
+      await reporter.documentStore.collection('templates').update({
+        shortid: 'd'
+      }, {
+        $set: {
+          name: 'duplicate',
+          shortid: 'd',
+          folder: { shortid: 'b' }
+        }
+      }, {
+        upsert: true
+      })
+    })
+
     it('inserting duplicated entity name into the nested should fail', async () => {
       await reporter.documentStore.collection('folders').insert({
         name: 'a',
@@ -308,6 +370,31 @@ describe('folders', function () {
       }).should.be.rejected()
     })
 
+    it('upsert duplicated entity name into the nested should fail', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a',
+        shortid: 'a'
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 'duplicate',
+        shortid: 'b',
+        folder: { shortid: 'a' }
+      })
+
+      return reporter.documentStore.collection('templates').update({
+        shortid: 'c'
+      }, {
+        $set: {
+          name: 'duplicate',
+          shortid: 'c',
+          folder: { shortid: 'a' }
+        }
+      }, {
+        upsert: true
+      }).should.be.rejected()
+    })
+
     it('should not validate duplicated name for the current entity', async () => {
       await reporter.documentStore.collection('templates').insert({
         name: 'a',
@@ -316,6 +403,16 @@ describe('folders', function () {
       })
 
       return reporter.documentStore.collection('templates').update({ name: 'a' }, { $set: { name: 'a', content: 'foo' } })
+    })
+
+    it('should not validate duplicated name for the current entity (upsert)', async () => {
+      return reporter.documentStore.collection('templates').update({
+        name: 'a'
+      }, {
+        $set: { name: 'a', shortid: 'a', content: 'foo' }
+      }, {
+        upsert: true
+      })
     })
 
     it('duplicate entity name validation should be case insensitive', async () => {
