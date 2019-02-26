@@ -14,7 +14,7 @@ describe('document store', () => {
 
       store = DocumentStore({
         store: {provider: 'memory'},
-        logger: (require('..//util/testLogger.js'))()
+        logger: (require('../util/testLogger.js'))()
       }, validator)
 
       return store.init()
@@ -91,6 +91,54 @@ describe('document store', () => {
       should(doc.shortid).be.String()
       should(doc.creationDate).be.Date()
       should(doc.modificationDate).be.Date()
+    })
+
+    it('should generate value for modificationDate (defaut field) on update', async () => {
+      const doc = await reporter.documentStore.collection('reports').insert({
+        name: 'foo'
+      })
+
+      const previousModificationDate = doc.modificationDate
+
+      await reporter.documentStore.collection('reports').update({
+        _id: doc._id
+      }, {
+        $set: {
+          name: 'foo2'
+        }
+      })
+
+      const lastDoc = await reporter.documentStore.collection('reports').findOne({
+        _id: doc._id
+      })
+
+      should(lastDoc.modificationDate).be.not.eql(previousModificationDate)
+    })
+
+    it('should skip generation of modificationDate (default field) on update when context.skipModificationDateUpdate is true', async () => {
+      const doc = await reporter.documentStore.collection('reports').insert({
+        name: 'foo'
+      })
+
+      const previousModificationDate = doc.modificationDate
+
+      await reporter.documentStore.collection('reports').update({
+        _id: doc._id
+      }, {
+        $set: {
+          name: 'foo2'
+        }
+      }, jsreport.Request({
+        context: {
+          skipModificationDateUpdate: true
+        }
+      }))
+
+      const lastDoc = await reporter.documentStore.collection('reports').findOne({
+        _id: doc._id
+      })
+
+      should(lastDoc.modificationDate).be.eql(previousModificationDate)
     })
 
     it('should not add default fields if they are already defined', async () => {
