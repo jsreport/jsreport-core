@@ -24,21 +24,14 @@ describe('render', () => {
   })
 
   it('should not be able to pass data as array', async () => {
-    try {
-      await reporter.render({
-        template: {
-          engine: 'none',
-          content: 'foo',
-          recipe: 'html'
-        },
-        data: [{ name: 'item1' }, { name: 'item2' }]
-      })
-
-      throw new Error('it was supposed to fail with error about data not being an object')
-    } catch (e) {
-      e.should.be.Error()
-      e.message.should.match(/^Request data can not be an array/)
-    }
+    return reporter.render({
+      template: {
+        engine: 'none',
+        content: 'foo',
+        recipe: 'html'
+      },
+      data: [{ name: 'item1' }, { name: 'item2' }]
+    }).should.be.rejectedWith(/^Request data can not be an array/)
   })
 
   it('should not change input data type', async () => {
@@ -108,39 +101,19 @@ describe('render', () => {
   })
 
   it('should fail when req.template.recipe not specified', async () => {
-    try {
-      await reporter.render({template: {content: 'foo2', engine: 'none'}})
-      throw new Error('It should have failed')
-    } catch (e) {
-      e.message.should.containEql('Recipe')
-    }
+    return reporter.render({template: {content: 'foo2', engine: 'none'}}).should.be.rejectedWith(/Recipe/)
   })
 
   it('should fail when req.template.engine not specified', async () => {
-    try {
-      await reporter.render({template: {content: 'foo2', recipe: 'html'}})
-      throw new Error('It should have failed')
-    } catch (e) {
-      e.message.should.containEql('Engine')
-    }
+    return reporter.render({template: {content: 'foo2', recipe: 'html'}}).should.be.rejectedWith(/Engine/)
   })
 
   it('should fail when req.template.recipe not found', async () => {
-    try {
-      await reporter.render({template: {content: 'foo2', engine: 'none', recipe: 'foo'}})
-      throw new Error('It should have failed')
-    } catch (e) {
-      e.message.should.containEql('Recipe')
-    }
+    return reporter.render({template: {content: 'foo2', engine: 'none', recipe: 'foo'}}).should.be.rejectedWith(/Recipe/)
   })
 
   it('should fail when req.template.engine not found', async () => {
-    try {
-      await reporter.render({template: {content: 'foo2', engine: 'foo', recipe: 'html'}})
-      throw new Error('It should have failed')
-    } catch (e) {
-      e.message.should.containEql('Engine')
-    }
+    return reporter.render({template: {content: 'foo2', engine: 'foo', recipe: 'html'}}).should.be.rejectedWith(/Engine/)
   })
 
   it('should call listeners in render', async () => {

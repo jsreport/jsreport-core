@@ -122,12 +122,7 @@ describe('folders', function () {
         }
       })
 
-      try {
-        await reporter.folders.resolveEntityPath(t, 'templates')
-        throw new Error('it was supposed to throw error instead of return')
-      } catch (e) {
-        e.message.includes('Folder with shortid').should.be.True()
-      }
+      return reporter.folders.resolveEntityPath(t, 'templates').should.be.rejectedWith(/Folder with shortid/)
     })
 
     it('resolveFolderFromPath should resolve folder from absolute path', async () => {
@@ -257,14 +252,10 @@ describe('folders', function () {
         name: 'duplicate',
         shortid: 'duplicate'
       })
-      try {
-        await reporter.documentStore.collection('templates').insert({
-          name: 'duplicate'
-        })
-        throw new Error('Should failed')
-      } catch (e) {
-        e.code.should.be.eql('DUPLICATED_ENTITY')
-      }
+
+      return reporter.documentStore.collection('templates').insert({
+        name: 'duplicate'
+      }).should.be.rejectedWith({code: 'DUPLICATED_ENTITY'})
     })
 
     it('upsert duplicated entity name into the root should fail', async () => {
@@ -273,21 +264,16 @@ describe('folders', function () {
         shortid: 'duplicate'
       })
 
-      try {
-        await reporter.documentStore.collection('templates').update({
-          name: 'duplicate'
-        }, {
-          $set: {
-            name: 'duplicate',
-            shortid: 'duplicate2'
-          }
-        }, {
-          upsert: true
-        })
-        throw new Error('Should failed')
-      } catch (e) {
-        e.code.should.be.eql('DUPLICATED_ENTITY')
-      }
+      return reporter.documentStore.collection('templates').update({
+        name: 'duplicate'
+      }, {
+        $set: {
+          name: 'duplicate',
+          shortid: 'duplicate2'
+        }
+      }, {
+        upsert: true
+      }).should.be.rejectedWith({code: 'DUPLICATED_ENTITY'})
     })
 
     it('inserting duplicated entity name into different folder should work', async () => {
