@@ -37,6 +37,7 @@
     "stack-trace": "0.0.10",
     "streamifier": "0.1.1",
     "unset-value": "1.0.0",
+    "uuid": "3.3.2",
     "vm2": "3.5.2",
     "winston": "2.4.0",
     "winston-transport": "3.0.1"
@@ -47,6 +48,7 @@
     "eslint-config-standard": "11.0.0",
     "eslint-config-standard-react": "5.0.0",
     "mocha": "4.1.0",
+    "rimraf": "2.6.3",
     "should": "13.2.0",
     "standard": "10.0.3",
     "std-mocks": "1.0.1",
