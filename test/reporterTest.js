@@ -873,6 +873,31 @@ describe('reporter', () => {
     return reporter.init().should.be.rejected()
   })
 
+  it('should ensure temp directory exists when using ensureTempDirectoryExists', async () => {
+    const tempDirectory = path.join(__dirname, 'tmp')
+
+    const reporter = core({
+      rootDirectory: path.join(__dirname),
+      tempDirectory
+    })
+
+    await reporter.init()
+
+    rimraf.sync(tempDirectory)
+
+    const { directoryPath } = await reporter.ensureTempDirectoryExists()
+
+    should(fs.existsSync(directoryPath)).be.eql(true)
+  })
+
+  it('should throw error when try to use ensureTempDirectoryExists but instance is not initialized', async () => {
+    const reporter = core({
+      rootDirectory: path.join(__dirname)
+    })
+
+    return should(reporter.ensureTempDirectoryExists()).be.rejectedWith(/Can not use ensureTempDirectoryExists/)
+  })
+
   it('should create temp file using writeTempFile', async () => {
     const reporter = core({
       rootDirectory: path.join(__dirname)
@@ -922,6 +947,67 @@ describe('reporter', () => {
     should(fs.readFileSync(result.pathToFile).toString()).be.eql('testing')
   })
 
+  it('should create temp file using writeTempFileStream', async () => {
+    const reporter = core({
+      rootDirectory: path.join(__dirname)
+    })
+
+    await reporter.init()
+
+    const result = await reporter.writeTempFileStream((uuid) => `something-${uuid}.txt`)
+
+    should(result.stream).have.property('writable')
+
+    result.stream.on('finish', () => {
+      should(fs.existsSync(result.pathToFile)).be.eql(true)
+      should(fs.readFileSync(result.pathToFile).toString()).be.eql('testing')
+    })
+
+    result.stream.end('testing')
+  })
+
+  it('should throw error when try to use writeTempFileStream but instance is not initialized', async () => {
+    const reporter = core({
+      rootDirectory: path.join(__dirname)
+    })
+
+    return should(reporter.writeTempFileStream((uuid) => `something-${uuid}.txt`)).be.rejectedWith(/Can not use writeTempFileStream/)
+  })
+
+  it('should throw error when filenameFn passed to writeTempFileStream does not return filename', async () => {
+    const reporter = core({
+      rootDirectory: path.join(__dirname)
+    })
+
+    await reporter.init()
+
+    return should(reporter.writeTempFileStream((uuid) => '')).be.rejectedWith(/No valid filename was returned/)
+  })
+
+  it('should create temp file using writeTempFileStream (if temp directory is deleted)', async () => {
+    const tempDirectory = path.join(__dirname, 'tmp')
+
+    const reporter = core({
+      rootDirectory: path.join(__dirname),
+      tempDirectory
+    })
+
+    await reporter.init()
+
+    rimraf.sync(tempDirectory)
+
+    const result = await reporter.writeTempFileStream((uuid) => `something-${uuid}.txt`)
+
+    should(result.stream).have.property('writable')
+
+    result.stream.on('finish', () => {
+      should(fs.existsSync(result.pathToFile)).be.eql(true)
+      should(fs.readFileSync(result.pathToFile).toString()).be.eql('testing')
+    })
+
+    result.stream.end('testing')
+  })
+
   it('should read temp file using readTempFile', async () => {
     const reporter = core({
       rootDirectory: path.join(__dirname)
@@ -943,5 +1029,44 @@ describe('reporter', () => {
     })
 
     return should(reporter.readTempFile('something.txt')).be.rejectedWith(/Can not use readTempFile/)
+  })
+
+  it('should read temp file using readTempFileStream', async () => {
+    const reporter = core({
+      rootDirectory: path.join(__dirname)
+    })
+
+    await reporter.init()
+
+    const { filename } = await reporter.writeTempFile((uuid) => `something-${uuid}.txt`, 'testing')
+
+    const result = await reporter.readTempFileStream(filename)
+
+    should(fs.existsSync(result.pathToFile)).be.eql(true)
+    should(result.stream).have.property('readable')
+
+    const content = await new Promise((resolve, reject) => {
+      const body = []
+
+      result.stream.on('error', reject)
+
+      result.stream.on('data', (chunk) => {
+        body.push(chunk)
+      })
+
+      result.stream.on('end', () => {
+        resolve(Buffer.concat(body))
+      })
+    })
+
+    should(content.toString()).be.eql('testing')
+  })
+
+  it('should throw error when try to use readTempFileStream but instance is not initialized', async () => {
+    const reporter = core({
+      rootDirectory: path.join(__dirname)
+    })
+
+    return should(reporter.readTempFileStream('something.txt')).be.rejectedWith(/Can not use readTempFileStream/)
   })
 })
