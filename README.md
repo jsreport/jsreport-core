@@ -17,9 +17,9 @@ Next to the engine you need also something we call **recipe**. Recipe represents
 
 Note that `jsreport-core` by default auto discovers installed extensions and apply them. In other words it is enough to just install following packages and there is no need for other configuration.
 
->npm install jsreport-core<br/>
->npm install jsreport-handlebars<br/>
->npm install jsreport-chrome-pdf
+> npm install jsreport-core<br/>
+> npm install jsreport-handlebars<br/>
+> npm install puppeteer jsreport-chrome-pdf
 
 ```js
 const jsreport = require('jsreport-core')()
