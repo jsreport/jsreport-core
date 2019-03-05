@@ -1,17 +1,22 @@
 const assert = require('assert')
 const should = require('should')
 const Settings = require('../../lib/util/settings.js')
+const SchemaValidator = require('../../lib/util/schemaValidator')
 const DocumentStore = require('../../lib/store/documentStore.js')
 
 describe('Settings', function () {
   let settings
   let documentStore
   beforeEach(async () => {
+    const validator = new SchemaValidator()
+
     settings = new Settings()
+
     documentStore = DocumentStore({
       store: { provider: 'memory', inMemory: true },
       logger: require('..//util/testLogger.js')()
-    })
+    }, validator)
+
     settings.registerEntity(documentStore)
 
     await documentStore.init()

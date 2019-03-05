@@ -233,108 +233,186 @@ describe('document store', () => {
     })
 
     describe('type json schemas', () => {
-      beforeEach(() => {
-        store.registerEntityType('DemoType', {
-          _id: { type: 'Edm.String' },
-          name: { type: 'Edm.String', publicKey: true },
-          active: { type: 'Edm.Boolean' },
-          timeout: { type: 'Edm.Int32' },
-          rawContent: { type: 'Edm.Binary' },
-          modificationDate: { type: 'Edm.DateTimeOffset' }
-        }, true)
+      describe('schema generation', () => {
+        beforeEach(() => {
+          store.registerEntityType('DemoType', {
+            _id: { type: 'Edm.String' },
+            name: { type: 'Edm.String', publicKey: true },
+            active: { type: 'Edm.Boolean' },
+            timeout: { type: 'Edm.Int32' },
+            rawContent: { type: 'Edm.Binary' },
+            modificationDate: { type: 'Edm.DateTimeOffset' }
+          }, true)
 
-        store.registerEntityType('ComplexTemplateType', {
-          _id: { type: 'Edm.String' },
-          name: { type: 'Edm.String', publicKey: true },
-          content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
-          recipe: { type: 'Edm.String' },
-          phantom: { type: 'jsreport.PhantomType' },
-          modificationDate: { type: 'Edm.DateTimeOffset' }
-        }, true)
+          store.registerEntityType('ComplexTemplateType', {
+            _id: { type: 'Edm.String' },
+            name: { type: 'Edm.String', publicKey: true },
+            content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
+            recipe: { type: 'Edm.String' },
+            phantom: { type: 'jsreport.PhantomType' },
+            modificationDate: { type: 'Edm.DateTimeOffset' }
+          }, true)
 
-        store.registerComplexType('ChromeType', {
-          scale: { type: 'Edm.String' },
-          displayHeaderFooter: { type: 'Edm.Boolean' },
-          printBackground: { type: 'Edm.Boolean' },
-          landscape: { type: 'Edm.Boolean' },
-          pageRanges: { type: 'Edm.String' },
-          format: { type: 'Edm.String' },
-          width: { type: 'Edm.String' },
-          height: { type: 'Edm.String' },
-          marginTop: { type: 'Edm.String' },
-          marginRight: { type: 'Edm.String' },
-          marginBottom: { type: 'Edm.String' },
-          marginLeft: { type: 'Edm.String' },
-          waitForJS: { type: 'Edm.Boolean' },
-          waitForNetworkIddle: { type: 'Edm.Boolean' },
-          headerTemplate: { type: 'Edm.String', document: { extension: 'html', engine: true } },
-          footerTemplate: { type: 'Edm.String', document: { extension: 'html', engine: true } }
-        })
+          store.registerComplexType('ChromeType', {
+            scale: { type: 'Edm.String' },
+            displayHeaderFooter: { type: 'Edm.Boolean' },
+            printBackground: { type: 'Edm.Boolean' },
+            landscape: { type: 'Edm.Boolean' },
+            pageRanges: { type: 'Edm.String' },
+            format: { type: 'Edm.String' },
+            width: { type: 'Edm.String' },
+            height: { type: 'Edm.String' },
+            marginTop: { type: 'Edm.String' },
+            marginRight: { type: 'Edm.String' },
+            marginBottom: { type: 'Edm.String' },
+            marginLeft: { type: 'Edm.String' },
+            waitForJS: { type: 'Edm.Boolean' },
+            waitForNetworkIddle: { type: 'Edm.Boolean' },
+            headerTemplate: { type: 'Edm.String', document: { extension: 'html', engine: true } },
+            footerTemplate: { type: 'Edm.String', document: { extension: 'html', engine: true } }
+          })
 
-        store.model.entityTypes['ComplexTemplateType'].chrome = { type: 'jsreport.ChromeType' }
+          store.model.entityTypes['ComplexTemplateType'].chrome = { type: 'jsreport.ChromeType' }
 
-        store.model.entityTypes['ComplexTemplateType'].tags = {
-          type: 'Collection(Edm.String)'
-        }
-
-        return store.init()
-      })
-
-      it('should generate JSON Schema for simple type def', async () => {
-        const demoSchema = reporter.entityTypeValidator.getSchema('DemoType')
-
-        demoSchema.should.be.eql({
-          $schema: reporter.entityTypeValidator.schemaVersion,
-          type: 'object',
-          properties: {
-            _id: { type: 'string' },
-            name: { type: 'string' },
-            active: { type: 'boolean' },
-            timeout: { type: 'integer', minimum: -2147483648, maximum: 2147483647 },
-            rawContent: { anyOf: [{ type: 'string' }, { '$jsreport-acceptsBuffer': true }] },
-            modificationDate: { anyOf: [{ type: 'string', format: 'date-time' }, { '$jsreport-acceptsDate': true }] }
+          store.model.entityTypes['ComplexTemplateType'].tags = {
+            type: 'Collection(Edm.String)'
           }
+
+          return store.init()
         })
-      })
 
-      it('should generate JSON Schema for complex type def', async () => {
-        const complexTemplateSchema = reporter.entityTypeValidator.getSchema('ComplexTemplateType')
+        it('should generate JSON Schema for simple type def', async () => {
+          const demoSchema = reporter.entityTypeValidator.getSchema('DemoType')
 
-        complexTemplateSchema.should.be.eql({
-          $schema: reporter.entityTypeValidator.schemaVersion,
-          type: 'object',
-          properties: {
-            _id: { type: 'string' },
-            name: { type: 'string' },
-            content: { type: 'string' },
-            recipe: { type: 'string' },
-            modificationDate: { anyOf: [{ type: 'string', format: 'date-time' }, { '$jsreport-acceptsDate': true }] },
-            chrome: {
-              type: 'object',
-              properties: {
-                scale: { type: 'string' },
-                displayHeaderFooter: { type: 'boolean' },
-                printBackground: { type: 'boolean' },
-                landscape: { type: 'boolean' },
-                pageRanges: { type: 'string' },
-                format: { type: 'string' },
-                width: { type: 'string' },
-                height: { type: 'string' },
-                marginTop: { type: 'string' },
-                marginRight: { type: 'string' },
-                marginBottom: { type: 'string' },
-                marginLeft: { type: 'string' },
-                waitForJS: { type: 'boolean' },
-                waitForNetworkIddle: { type: 'boolean' },
-                headerTemplate: { type: 'string' },
-                footerTemplate: { type: 'string' }
-              }
-            },
-            tags: {
-              type: 'array',
-              items: { type: 'string' }
+          demoSchema.should.be.eql({
+            $schema: reporter.entityTypeValidator.schemaVersion,
+            type: 'object',
+            properties: {
+              _id: { type: 'string' },
+              name: { type: 'string' },
+              active: { type: 'boolean' },
+              timeout: { type: 'integer', minimum: -2147483648, maximum: 2147483647 },
+              rawContent: { anyOf: [{ type: 'string' }, { '$jsreport-acceptsBuffer': true }] },
+              modificationDate: { anyOf: [{ type: 'string', format: 'date-time' }, { '$jsreport-acceptsDate': true }] }
             }
-          }
+          })
+        })
+
+        it('should generate JSON Schema for complex type def', async () => {
+          const complexTemplateSchema = reporter.entityTypeValidator.getSchema('ComplexTemplateType')
+
+          complexTemplateSchema.should.be.eql({
+            $schema: reporter.entityTypeValidator.schemaVersion,
+            type: 'object',
+            properties: {
+              _id: { type: 'string' },
+              name: { type: 'string' },
+              content: { type: 'string' },
+              recipe: { type: 'string' },
+              modificationDate: { anyOf: [{ type: 'string', format: 'date-time' }, { '$jsreport-acceptsDate': true }] },
+              chrome: {
+                type: 'object',
+                properties: {
+                  scale: { type: 'string' },
+                  displayHeaderFooter: { type: 'boolean' },
+                  printBackground: { type: 'boolean' },
+                  landscape: { type: 'boolean' },
+                  pageRanges: { type: 'string' },
+                  format: { type: 'string' },
+                  width: { type: 'string' },
+                  height: { type: 'string' },
+                  marginTop: { type: 'string' },
+                  marginRight: { type: 'string' },
+                  marginBottom: { type: 'string' },
+                  marginLeft: { type: 'string' },
+                  waitForJS: { type: 'boolean' },
+                  waitForNetworkIddle: { type: 'boolean' },
+                  headerTemplate: { type: 'string' },
+                  footerTemplate: { type: 'string' }
+                }
+              },
+              tags: {
+                type: 'array',
+                items: { type: 'string' }
+              }
+            }
+          })
+        })
+      })
+
+      describe('validation', async () => {
+        it('should coerce input while doing insert', async () => {
+          let input
+
+          store.collection('validationTest').beforeInsertListeners.add('test', (doc) => {
+            input = doc
+          })
+
+          await store.collection('validationTest').insert({
+            name: 'testing',
+            alias: 1,
+            followers: '345',
+            owner: 1
+          })
+
+          should(input.alias).be.eql('1')
+          should(input.followers).be.eql(345)
+          should(input.owner).be.eql(true)
+        })
+
+        it('should throw when validation fails while doing insert', async () => {
+          return should(store.collection('validationTest').insert({
+            name: 'testing',
+            followers: 'foo',
+            owner: 'fail'
+          })).be.rejectedWith(/input contain values that does not match the schema/)
+        })
+
+        it('should coerce input while doing update', async () => {
+          let input
+
+          store.collection('validationTest').beforeUpdateListeners.add('test', (q, u) => {
+            input = u.$set
+          })
+
+          await store.collection('validationTest').insert({
+            name: 'testing',
+            alias: 't',
+            followers: 200,
+            owner: true
+          })
+
+          await store.collection('validationTest').update({
+            name: 'testing'
+          }, {
+            $set: {
+              alias: 1,
+              followers: '345',
+              owner: 1
+            }
+          })
+
+          should(input.alias).be.eql('1')
+          should(input.followers).be.eql(345)
+          should(input.owner).be.eql(true)
+        })
+
+        it('should throw when validation fails while doing update', async () => {
+          await store.collection('validationTest').insert({
+            name: 'testing',
+            alias: 't',
+            followers: 200,
+            owner: true
+          })
+
+          return should(store.collection('validationTest').update({
+            name: 'testing'
+          }, {
+            $set: {
+              followers: 'foo',
+              owner: 'fail'
+            }
+          })).be.rejectedWith(/input contain values that does not match the schema/)
         })
       })
     })
@@ -366,6 +444,14 @@ function init (options) {
         name: { type: 'Edm.String', publicKey: true }
       })
 
+      reporter.documentStore.registerEntityType('ValidationTestType', {
+        name: { type: 'Edm.String', publicKey: true },
+        alias: { type: 'Edm.String' },
+        followers: { type: 'Edm.Int32' },
+        owner: { type: 'Edm.Boolean' },
+        creationDate: { type: 'Edm.DateTimeOffset' }
+      })
+
       reporter.documentStore.registerEntityType('FooType', {
         name: { type: 'Edm.String', publicKey: true },
         hummanKey: { type: 'Edm.String' }
@@ -390,8 +476,11 @@ function init (options) {
       })
 
       reporter.documentStore.registerEntitySet('custom', {
-        entityType: 'jsreport.FooType',
-        humanReadableKey: 'shortid'
+        entityType: 'jsreport.CustomType'
+      })
+
+      reporter.documentStore.registerEntitySet('validationTest', {
+        entityType: 'jsreport.ValidationTestType'
       })
     }
   })
