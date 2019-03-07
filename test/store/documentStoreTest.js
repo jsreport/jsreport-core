@@ -292,7 +292,7 @@ describe('document store', () => {
               name: { type: 'string' },
               active: { type: 'boolean' },
               timeout: { type: 'integer', minimum: -2147483648, maximum: 2147483647 },
-              rawContent: { anyOf: [{ type: 'string' }, { '$jsreport-acceptsBuffer': true }] },
+              rawContent: { anyOf: [{ type: 'null' }, { type: 'string' }, { '$jsreport-acceptsBuffer': true }] },
               modificationDate: { anyOf: [{ type: 'string', format: 'date-time' }, { '$jsreport-acceptsDate': true }] }
             }
           })
