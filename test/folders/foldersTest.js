@@ -142,6 +142,23 @@ describe('folders', function () {
       folder.shortid.should.be.eql('a')
     })
 
+    it('resolveFolderFromPath should resolve folder from absolute path with spaces', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a a',
+        shortid: 'a'
+      })
+      await reporter.documentStore.collection('templates').insert({
+        name: 'b',
+        shortid: 'b',
+        folder: {
+          shortid: 'a'
+        }
+      })
+
+      const folder = await reporter.folders.resolveFolderFromPath('/a a/b')
+      folder.shortid.should.be.eql('a')
+    })
+
     it('resolveFolderFromPath should return null for root objects', async () => {
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
