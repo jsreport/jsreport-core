@@ -449,7 +449,7 @@ describe('folders', function () {
         { $set: { folder: { shortid: 'a' } } }).should.be.rejected()
     })
 
-    it('should reject when moving entity to the root and there is duplicate', async () => {
+    it('should reject when updating entity to the root and there is duplicate', async () => {
       await reporter.documentStore.collection('folders').insert({
         name: 'folder',
         shortid: 'a'
@@ -1069,6 +1069,110 @@ describe('folders', function () {
 
       foldersInFolder4.should.eql([])
       foldersInFolder1.should.eql(['folder2'])
+    })
+
+    it('should not let move entity when it causes conflict with folder with same name', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'foo',
+        shortid: 'foo-folder'
+      })
+
+      const a = await reporter.documentStore.collection('templates').insert({
+        name: 'foo',
+        shortid: 'foo',
+        folder: {
+          shortid: 'foo-folder'
+        }
+      })
+
+      return should(reporter.folders.move({
+        source: {
+          entitySet: 'templates',
+          id: a._id
+        },
+        target: {
+          shortid: null
+        }
+      })).be.rejectedWith({ code: 'DUPLICATED_ENTITY' })
+    })
+
+    it('should not let move entity (replace: true) when it causes conflict with folder with same name', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'foo',
+        shortid: 'foo-folder'
+      })
+
+      const a = await reporter.documentStore.collection('templates').insert({
+        name: 'foo',
+        shortid: 'foo',
+        folder: {
+          shortid: 'foo-folder'
+        }
+      })
+
+      return should(reporter.folders.move({
+        source: {
+          entitySet: 'templates',
+          id: a._id
+        },
+        target: {
+          shortid: null
+        },
+        shouldReplace: true
+      })).be.rejectedWith({ code: 'DUPLICATED_ENTITY' })
+    })
+
+    it('should not let copy entity when it causes conflict with folder with same name', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'foo',
+        shortid: 'foo-folder'
+      })
+
+      const a = await reporter.documentStore.collection('templates').insert({
+        name: 'foo',
+        shortid: 'foo',
+        folder: {
+          shortid: 'foo-folder'
+        }
+      })
+
+      return should(reporter.folders.move({
+        source: {
+          entitySet: 'templates',
+          id: a._id
+        },
+        target: {
+          shortid: null
+        },
+        shouldCopy: true
+      })).be.rejectedWith({ code: 'DUPLICATED_ENTITY' })
+    })
+
+    it('should not let copy entity (replace: true) when it causes conflict with folder with same name', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'foo',
+        shortid: 'foo-folder'
+      })
+
+      const a = await reporter.documentStore.collection('templates').insert({
+        name: 'foo',
+        shortid: 'foo',
+        folder: {
+          shortid: 'foo-folder'
+        }
+      })
+
+      return should(reporter.folders.move({
+        source: {
+          entitySet: 'templates',
+          id: a._id
+        },
+        target: {
+          shortid: null
+        },
+        shouldCopy: true,
+        shouldReplace: true
+      })).be.rejectedWith({ code: 'DUPLICATED_ENTITY' })
     })
   })
 })
