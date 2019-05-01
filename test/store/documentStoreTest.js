@@ -76,7 +76,7 @@ describe('document store', () => {
     })
 
     it('should add default fields', async () => {
-      should(reporter.documentStore.model.entityTypes.ReportType._id).be.eql({ type: 'Edm.String' })
+      should(reporter.documentStore.model.entityTypes.ReportType._id).be.eql({ key: true, type: 'Edm.String' })
       should(reporter.documentStore.model.entityTypes.ReportType.shortid).be.eql({ type: 'Edm.String' })
       should(reporter.documentStore.model.entityTypes.ReportType.creationDate).be.eql({ type: 'Edm.DateTimeOffset' })
       should(reporter.documentStore.model.entityTypes.ReportType.modificationDate).be.eql({ type: 'Edm.DateTimeOffset' })
