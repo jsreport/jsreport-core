@@ -200,6 +200,27 @@ describe('engine', () => {
       })
     })
 
+    it('should send engine options to the engine', (done) => {
+      const engineOpts = { foo: 'bar' }
+
+      engine({
+        safeSandboxPath,
+        template: { content: '' },
+        engine: path.join(__dirname, 'passOptionsEngine.js'),
+        engineOptions: engineOpts,
+        nativeModules: [],
+        templatingEngines: { templateCache: { enabled: false }, modules: [], nativeModules: [], allowedModules: [] },
+        data: { 'a': { 'val': 'foo' } }
+      }, () => {}, (err, res) => {
+        if (err) {
+          return done(err)
+        }
+
+        res.content.should.be.eql(JSON.stringify(engineOpts))
+        done()
+      })
+    })
+
     it('should send data to the engine', (done) => {
       engine({
         safeSandboxPath,
