@@ -129,4 +129,12 @@ describe('encryption', () => {
 
     should(value).be.eql(string)
   })
+
+  it('isEncrypted should return true', async () => {
+    should(reporter.encryption.isEncrypted('jrEncrypt$a873e1cfdc214a15d6657a5b54a2e363:6de02b2c66080ad03d39166b1045f5eb:093fc9')).be.eql(true)
+  })
+
+  it('isEncrypted should return false', () => {
+    should(reporter.encryption.isEncrypted('demo')).be.eql(false)
+  })
 })
