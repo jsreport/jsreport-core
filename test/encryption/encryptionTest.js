@@ -47,10 +47,22 @@ describe('encryption', () => {
     should(encrypted.split(':')).have.length(3)
   })
 
-  it('should throw error when no encryption.secretKey defined', async () => {
+  it('encrypt should do nothing when encryption.enabled=false', async () => {
+    reporter = await init({
+      encryption: {
+        enabled: false
+      }
+    })
+
+    const encrypted = await reporter.encryption.encrypt('foo')
+
+    should(encrypted).be.eql('foo')
+  })
+
+  it('decrypt should throw error when no encryption.secretKey defined', async () => {
     reporter = await init()
 
-    const encrypted = '2be9f167c51140a237fe1e9d95a94e1c:13202f53a67b13ae784b05aa47eb858c:14f86a'
+    const encrypted = 'jrEncrypt$a873e1cfdc214a15d6657a5b54a2e363:6de02b2c66080ad03d39166b1045f5eb:093fc9'
 
     should(reporter.encryption.decrypt(encrypted)).be.rejectedWith(/requires to specify a secret/)
   })
@@ -62,7 +74,7 @@ describe('encryption', () => {
       }
     })
 
-    const encrypted = '2be9f167c51140a237fe1e9d95a94e1c:13202f53a67b13ae784b05aa47eb858c:14f86a'
+    const encrypted = 'jrEncrypt$a873e1cfdc214a15d6657a5b54a2e363:6de02b2c66080ad03d39166b1045f5eb:093fc9'
 
     should(reporter.encryption.decrypt(encrypted)).be.rejectedWith(/Unsupported state or unable to authenticate data/)
   })
@@ -74,10 +86,34 @@ describe('encryption', () => {
       }
     })
 
-    const encrypted = '2be9f167c51140a237fe1e9d95a94e1c:13202f53a67b13ae784b05aa47eb858c:14f86a'
+    const encrypted = 'jrEncrypt$a873e1cfdc214a15d6657a5b54a2e363:6de02b2c66080ad03d39166b1045f5eb:093fc9'
     const value = await reporter.encryption.decrypt(encrypted)
 
     should(value).be.eql('foo')
+  })
+
+  it('decrypt should do nothing when text is not encrypted', async () => {
+    reporter = await init({
+      encryption: {
+        secretKey: SECRET_KEY
+      }
+    })
+
+    const encrypted = await reporter.encryption.decrypt('foo')
+
+    should(encrypted).be.eql('foo')
+  })
+
+  it('decrypt should throw when text is encrypted and encryption.enabled=false', async () => {
+    reporter = await init({
+      encryption: {
+        enabled: false
+      }
+    })
+
+    const encrypted = 'jrEncrypt$a873e1cfdc214a15d6657a5b54a2e363:6de02b2c66080ad03d39166b1045f5eb:093fc9'
+
+    should(reporter.encryption.decrypt(encrypted)).be.rejectedWith(/restore encrypted value requires to enable encryption/)
   })
 
   it('encrypt and decrypt should work', async () => {
