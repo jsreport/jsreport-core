@@ -2,6 +2,7 @@ const assert = require('assert')
 const should = require('should')
 const Settings = require('../../lib/util/settings.js')
 const SchemaValidator = require('../../lib/util/schemaValidator')
+const Encryption = require('../../lib/util/encryption')
 const DocumentStore = require('../../lib/store/documentStore.js')
 
 describe('Settings', function () {
@@ -10,12 +11,21 @@ describe('Settings', function () {
   beforeEach(async () => {
     const validator = new SchemaValidator()
 
+    const encryption = Encryption({
+      options: {
+        encryption: {
+          secretKey: 'foo1234567891234',
+          enabled: true
+        }
+      }
+    })
+
     settings = new Settings()
 
     documentStore = DocumentStore({
       store: { provider: 'memory', inMemory: true },
       logger: require('..//util/testLogger.js')()
-    }, validator)
+    }, validator, encryption)
 
     settings.registerEntity(documentStore)
 

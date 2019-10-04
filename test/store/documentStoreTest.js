@@ -2,6 +2,7 @@ const should = require('should')
 const jsreport = require('../../')
 const DocumentStore = require('../../lib/store/documentStore.js')
 const SchemaValidator = require('../../lib/util/schemaValidator')
+const Encryption = require('../../lib/util/encryption')
 const common = require('./common.js')
 
 describe('document store', () => {
@@ -12,10 +13,19 @@ describe('document store', () => {
     beforeEach(() => {
       const validator = new SchemaValidator()
 
+      const encryption = Encryption({
+        options: {
+          encryption: {
+            secretKey: 'foo1234567891234',
+            enabled: true
+          }
+        }
+      })
+
       store = DocumentStore({
         store: {provider: 'memory'},
         logger: (require('../util/testLogger.js'))()
-      }, validator)
+      }, validator, encryption)
 
       return store.init()
     })
