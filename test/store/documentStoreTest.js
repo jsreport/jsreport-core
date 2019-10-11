@@ -303,7 +303,7 @@ describe('document store', () => {
               active: { type: 'boolean' },
               timeout: { type: 'integer', minimum: -2147483648, maximum: 2147483647 },
               rawContent: { anyOf: [{ type: 'null' }, { type: 'string' }, { '$jsreport-acceptsBuffer': true }] },
-              modificationDate: { anyOf: [{ type: 'string', format: 'date-time' }, { '$jsreport-acceptsDate': true }] }
+              modificationDate: { anyOf: [{ '$jsreport-stringToDate': true }, { '$jsreport-acceptsDate': true }] }
             }
           })
         })
@@ -319,7 +319,7 @@ describe('document store', () => {
               name: { type: 'string' },
               content: { type: 'string' },
               recipe: { type: 'string' },
-              modificationDate: { anyOf: [{ type: 'string', format: 'date-time' }, { '$jsreport-acceptsDate': true }] },
+              modificationDate: { anyOf: [{ '$jsreport-stringToDate': true }, { '$jsreport-acceptsDate': true }] },
               chrome: {
                 type: 'object',
                 properties: {
@@ -362,12 +362,16 @@ describe('document store', () => {
             name: 'testing',
             alias: 1,
             followers: '345',
-            owner: 1
+            owner: 1,
+            customDate: new Date(),
+            customDate2: '2019-10-11T17:41:29.453Z'
           })
 
           should(input.alias).be.eql('1')
           should(input.followers).be.eql(345)
           should(input.owner).be.eql(true)
+          should(input.customDate).be.Date()
+          should(input.customDate2).be.Date()
         })
 
         it('should throw when validation fails while doing insert', async () => {
@@ -389,7 +393,9 @@ describe('document store', () => {
             name: 'testing',
             alias: 't',
             followers: 200,
-            owner: true
+            owner: true,
+            customDate: new Date(),
+            customDate2: '2019-10-11T17:41:29.453Z'
           })
 
           await store.collection('validationTest').update({
@@ -398,13 +404,15 @@ describe('document store', () => {
             $set: {
               alias: 1,
               followers: '345',
-              owner: 1
+              owner: 1,
+              customDate2: '2019-10-12T17:41:29.453Z'
             }
           })
 
           should(input.alias).be.eql('1')
           should(input.followers).be.eql(345)
           should(input.owner).be.eql(true)
+          should(input.customDate2).be.Date()
         })
 
         it('should throw when validation fails while doing update', async () => {
@@ -459,6 +467,8 @@ function init (options) {
         alias: { type: 'Edm.String' },
         followers: { type: 'Edm.Int32' },
         owner: { type: 'Edm.Boolean' },
+        customDate: { type: 'Edm.DateTimeOffset' },
+        customDate2: { type: 'Edm.DateTimeOffset' },
         creationDate: { type: 'Edm.DateTimeOffset' }
       })
 

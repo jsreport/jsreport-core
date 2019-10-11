@@ -392,6 +392,40 @@ describe('reporter', () => {
       should(options.modificationDate).be.Date()
     })
 
+    it('should validate and sanitize date type of custom extension', async () => {
+      const reporter = core({ rootDirectory: path.join(__dirname) })
+
+      let options
+
+      reporter.use({
+        name: 'test',
+        optionsSchema: {
+          extensions: {
+            test: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                modificationDate: { anyOf: [{ '$jsreport-stringToDate': true }, { '$jsreport-acceptsDate': true }] },
+                modificationDate2: { anyOf: [{ '$jsreport-stringToDate': true }, { '$jsreport-acceptsDate': true }] }
+              }
+            }
+          }
+        },
+        options: {
+          name: 'testing',
+          modificationDate: new Date(),
+          modificationDate2: new Date().toISOString()
+        },
+        main: (reporter, definition) => { options = definition.options }
+      })
+
+      await reporter.init()
+
+      options.name.should.be.eql('testing')
+      should(options.modificationDate).be.Date()
+      should(options.modificationDate2).be.Date()
+    })
+
     it('should validate and keep buffer object of custom extension', async () => {
       const reporter = core({ rootDirectory: path.join(__dirname) })
       let options
