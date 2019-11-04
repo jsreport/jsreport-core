@@ -23,6 +23,49 @@ describe('render', () => {
     return reporter.init()
   })
 
+  it('should initialize data', async () => {
+    let context
+    let data
+
+    reporter.beforeRenderListeners.add('test', (req) => {
+      context = req.context
+      data = req.data
+    })
+
+    await reporter.render({
+      template: {
+        engine: 'none',
+        content: 'foo',
+        recipe: 'html'
+      }
+    })
+
+    context.originalInputDataIsEmpty.should.be.eql(true)
+    data.should.be.eql({})
+  })
+
+  it('should take data', async () => {
+    let context
+    let data
+
+    reporter.beforeRenderListeners.add('test', (req) => {
+      context = req.context
+      data = req.data
+    })
+
+    await reporter.render({
+      template: {
+        engine: 'none',
+        content: 'foo',
+        recipe: 'html'
+      },
+      data: { a: 'a' }
+    })
+
+    context.originalInputDataIsEmpty.should.be.eql(false)
+    data.should.be.eql({ a: 'a' })
+  })
+
   it('should not be able to pass data as array', async () => {
     return reporter.render({
       template: {
@@ -206,10 +249,41 @@ describe('render', () => {
     should(parentReq.context.isChildRequest).not.be.true()
   })
 
-  it('should merge parent to the current request', async () => {
+  it('should detect initial data on current request correctly', async () => {
+    let data
+    let childOriginalInputDataIsEmpty
+
+    reporter.beforeRenderListeners.add('test', this, (req) => {
+      data = req.data
+      childOriginalInputDataIsEmpty = req.context.originalInputDataIsEmpty
+    })
+
+    const parentReq = createRequest({
+      template: {},
+      options: {},
+      context: {
+        logs: []
+      }
+    })
+
+    parentReq.context.originalInputDataIsEmpty.should.be.eql(true)
+
+    await reporter.render({
+      template: { content: 'Hey', engine: 'none', recipe: 'html' },
+      data: { a: 'a' }
+    }, parentReq)
+
+    childOriginalInputDataIsEmpty.should.be.eql(false)
+    data.should.have.property('a')
+  })
+
+  it('should inherit parent data to the current request', async () => {
     let data
     let options
+    let childOriginalInputDataIsEmpty
+
     reporter.beforeRenderListeners.add('test', this, (req) => {
+      childOriginalInputDataIsEmpty = req.context.originalInputDataIsEmpty
       data = req.data
       options = req.options
     })
@@ -223,10 +297,50 @@ describe('render', () => {
       }
     })
 
+    parentReq.context.originalInputDataIsEmpty.should.be.eql(false)
+
     await reporter.render({
-      template: { content: 'Hey', engine: 'none', recipe: 'html' }, data: {b: 'b'}, options: {b: 'b', c: 'x'}
+      template: { content: 'Hey', engine: 'none', recipe: 'html' },
+      options: {b: 'b', c: 'x'}
     }, parentReq)
 
+    childOriginalInputDataIsEmpty.should.be.eql(false)
+    data.should.have.property('a')
+    options.should.have.property('a')
+    options.should.have.property('b')
+    options.should.have.property('c')
+    options.c.should.be.eql('x')
+  })
+
+  it('should merge parent to the current request', async () => {
+    let data
+    let options
+    let childOriginalInputDataIsEmpty
+
+    reporter.beforeRenderListeners.add('test', this, (req) => {
+      childOriginalInputDataIsEmpty = req.context.originalInputDataIsEmpty
+      data = req.data
+      options = req.options
+    })
+
+    const parentReq = createRequest({
+      template: {},
+      options: {a: 'a', c: 'c'},
+      data: {a: 'a'},
+      context: {
+        logs: []
+      }
+    })
+
+    parentReq.context.originalInputDataIsEmpty.should.be.eql(false)
+
+    await reporter.render({
+      template: { content: 'Hey', engine: 'none', recipe: 'html' },
+      data: {b: 'b'},
+      options: {b: 'b', c: 'x'}
+    }, parentReq)
+
+    childOriginalInputDataIsEmpty.should.be.eql(false)
     data.should.have.property('a')
     data.should.have.property('b')
     options.should.have.property('a')
