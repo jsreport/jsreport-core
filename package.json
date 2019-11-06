@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@babel/code-frame": "7.5.5",
+    "@jsreport/mingo": "2.4.1",
     "ajv": "6.10.0",
     "app-root-path": "2.0.1",
     "bluebird": "3.5.4",
@@ -25,9 +26,7 @@
     "lodash.groupby": "4.6.0",
     "lodash.omit": "4.5.0",
     "lodash.set": "4.3.2",
-    "lodash.uniqby": "4.7.0",
     "lru-cache": "4.1.1",
-    "mingo": "2.1.1",
     "mkdirp": "0.5.1",
     "nanoid": "1.0.2",
     "nconf": "0.10.0",
