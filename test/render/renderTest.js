@@ -23,6 +23,12 @@ describe('render', () => {
     return reporter.init()
   })
 
+  afterEach(() => {
+    if (reporter) {
+      return reporter.close()
+    }
+  })
+
   it('should initialize data', async () => {
     let context
     let data
@@ -347,5 +353,72 @@ describe('render', () => {
     options.should.have.property('b')
     options.should.have.property('c')
     options.c.should.be.eql('x')
+  })
+})
+
+describe('render (single timeout)', () => {
+  let reporter
+  let reportTimeout = 200
+
+  beforeEach(() => {
+    reporter = core({ discover: false, reportTimeout })
+    return reporter.init()
+  })
+
+  afterEach(() => {
+    if (reporter) {
+      return reporter.close()
+    }
+  })
+
+  it('should timeout', async () => {
+    reporter.beforeRenderListeners.add('test', async () => {
+      await new Promise((resolve) => setTimeout(resolve, reportTimeout + 10))
+    })
+
+    return reporter.render({
+      template: {
+        engine: 'none',
+        content: 'foo',
+        recipe: 'html'
+      }
+    }).should.be.rejectedWith(/Render timeout/)
+  })
+
+  it('should timeout with blocking template engine', async () => {
+    return reporter.render({
+      template: {
+        engine: 'none',
+        content: 'foo',
+        recipe: 'html',
+        helpers: 'while (true) {}'
+      }
+    }).should.be.rejectedWith(/Timeout during execution of templating engine/)
+  })
+
+  it('should timeout with child requests', async () => {
+    reporter.beforeRenderListeners.add('test', async (req) => {
+      if (req.context.isChildRequest) {
+        await new Promise((resolve) => setTimeout(resolve, reportTimeout + 10))
+      } else {
+        const resp = await reporter.render({
+          template: {
+            engine: 'none',
+            content: 'bar',
+            recipe: 'html'
+          }
+        }, req)
+
+        req.template.content += ` ${resp.content}`
+      }
+    })
+
+    return reporter.render({
+      template: {
+        engine: 'none',
+        content: 'foo',
+        recipe: 'html'
+      }
+    }).should.be.rejectedWith(/Render timeout/)
   })
 })

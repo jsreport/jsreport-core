@@ -523,7 +523,8 @@ describe('engine', () => {
           content: '',
           helpers: 'function a() { while(true) {} }'
         },
-        templatingEngines: { templateCache: { enabled: false }, modules: [], nativeModules: [], allowedModules: [], timeout: 500 },
+        timeout: 500,
+        templatingEngines: { templateCache: { enabled: false }, modules: [], nativeModules: [], allowedModules: [] },
         engine: path.join(__dirname, 'helpersEngine.js')
       }, () => {
       }, (err, res) => {
