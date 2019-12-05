@@ -232,7 +232,37 @@ describe('render', () => {
       template: { content: 'Hey', engine: 'none', recipe: 'html' }
     }, parentReq)
 
-    parentReq.context.logs.map(l => l.message).should.containEql('Rendering engine none')
+    const logs = parentReq.context.logs.map(l => l.message)
+
+    logs.should.containEql('hello')
+    logs.should.containEql('Rendering engine none')
+  })
+
+  it('should propagate logs to the parent request (error case)', async () => {
+    const parentReq = createRequest({
+      template: {},
+      options: {},
+      context: {
+        logs: [{message: 'hello'}]
+      }
+    })
+
+    reporter.afterRenderListeners.add('test', () => {
+      throw new Error('child error')
+    })
+
+    try {
+      await reporter.render({
+        template: { content: 'Hey', engine: 'none', recipe: 'html' }
+      }, parentReq)
+
+      throw new Error('render should fail')
+    } catch (e) {
+      const logs = parentReq.context.logs.map(l => l.message)
+
+      logs.should.containEql('hello')
+      logs.should.containEql('Rendering engine none')
+    }
   })
 
   it('should add isChildRequest to the nested render', async () => {
