@@ -1,3 +1,4 @@
+const should = require('should')
 const Request = require('../../lib/render/request.js')
 
 module.exports = (store) => {
@@ -15,10 +16,15 @@ module.exports = (store) => {
     }
 
     store().registerEntityType('CommonTemplateType', { ...templateType })
-    store().registerEntityType('CommonInternalTemplateType', { ...templateType })
+    store().registerEntityType('CommonTemplateType2', { ...templateType })
 
     store().registerEntitySet('templates', {
       entityType: 'jsreport.CommonTemplateType',
+      splitIntoDirectories: true
+    })
+
+    store().registerEntitySet('templates2', {
+      entityType: 'jsreport.CommonTemplateType2',
       splitIntoDirectories: true
     })
 
@@ -28,8 +34,18 @@ module.exports = (store) => {
       splitIntoDirectories: true
     })
 
+    store().registerEntitySet('internalTemplates2', {
+      entityType: 'jsreport.CommonTemplateType2',
+      internal: true,
+      splitIntoDirectories: true
+    })
+
     await store().init()
     return store().drop()
+  })
+
+  afterEach(() => {
+    store().clear()
   })
 
   describe('public collection', () => {
@@ -201,5 +217,923 @@ function collectionTests (store, isInternal) {
     await getCollection(colName).insert({ name: '2', recipe: 'a' })
     const res = await getCollection(colName).update({ recipe: 'a' }, { $set: { engine: 'test2' } })
     res.should.be.eql(2)
+  })
+
+  describe('transactions', () => {
+    it('should be able to start', async () => {
+      const req = Request({})
+      await store().beginTransaction(req)
+      req.context.storeTransaction.should.be.not.empty()
+      await store().commitTransaction(req)
+    })
+
+    it('should fail when trying to start more than once', async () => {
+      const req = Request({})
+
+      await store().beginTransaction(req)
+
+      try {
+        await store().beginTransaction(req)
+        throw new Error('it should have failed calling beginTransaction twice')
+      } catch (e) {
+        e.message.should.containEql('active transaction already exists')
+      }
+
+      await store().commitTransaction(req)
+    })
+
+    it('should fail when commit without start', async () => {
+      const req = Request({})
+      return should(store().commitTransaction(req)).be.rejectedWith(/without an active transaction/)
+    })
+
+    it('should fail when rollback without start', async () => {
+      const req = Request({})
+      return should(store().rollbackTransaction(req)).be.rejectedWith(/without an active transaction/)
+    })
+
+    it('should fail when commit more than once', async () => {
+      const req = Request({})
+
+      await store().beginTransaction(req)
+      await store().commitTransaction(req)
+
+      return should(store().commitTransaction(req)).be.rejectedWith(/without an active transaction/)
+    })
+
+    it('should fail when rollback more than once', async () => {
+      const req = Request({})
+
+      await store().beginTransaction(req)
+      await store().rollbackTransaction(req)
+
+      return should(store().rollbackTransaction(req)).be.rejectedWith(/without an active transaction/)
+    })
+
+    it('should fail when rollback after commit', async () => {
+      const req = Request({})
+
+      await store().beginTransaction(req)
+      await store().commitTransaction(req)
+
+      return should(store().rollbackTransaction(req)).rejectedWith(/without an active transaction/)
+    })
+
+    it('should fail when commit after rollback', async () => {
+      const req = Request({})
+
+      await store().beginTransaction(req)
+      await store().rollbackTransaction(req)
+
+      return should(store().commitTransaction(req)).rejectedWith(/without an active transaction/)
+    })
+
+    it('should be able to commit (insert)', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+      await store().beginTransaction(req)
+
+      try {
+        const t1 = {
+          name: 't1',
+          engine: 'none',
+          recipe: 'html'
+        }
+
+        await getCollection(colName).insert(t1, req)
+
+        await store().commitTransaction(req)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found != null).be.True()
+    })
+
+    it('should be able to rollback (insert)', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+      await store().beginTransaction(req)
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await getCollection(colName).insert(t1, req)
+
+      await store().rollbackTransaction(req)
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found == null).be.True()
+    })
+
+    it('should be able to commit (update)', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await getCollection(colName).insert(t1)
+
+      await store().beginTransaction(req)
+
+      try {
+        await getCollection(colName).update({
+          name: 't1'
+        }, {
+          $set: {
+            engine: 'handlebars'
+          }
+        }, req)
+
+        await store().commitTransaction(req)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found.engine).be.eql('handlebars')
+    })
+
+    it('should be able to rollback (update)', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await getCollection(colName).insert(t1)
+
+      await store().beginTransaction(req)
+
+      await getCollection(colName).update({
+        name: 't1'
+      }, {
+        $set: {
+          engine: 'handlebars'
+        }
+      }, req)
+
+      await store().rollbackTransaction(req)
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found.engine).be.eql('none')
+    })
+
+    it('should be able to commit (upsert)', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await store().beginTransaction(req)
+
+      try {
+        await getCollection(colName).insert(t1, req)
+
+        await getCollection(colName).update({
+          name: 't1'
+        }, {
+          $set: {
+            engine: 'handlebars'
+          }
+        }, req)
+
+        await store().commitTransaction(req)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found != null).be.True()
+    })
+
+    it('should be able to rollback (upsert)', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await store().beginTransaction(req)
+
+      await getCollection(colName).insert(t1, req)
+
+      await getCollection(colName).update({
+        name: 't1'
+      }, {
+        $set: {
+          engine: 'handlebars'
+        }
+      }, req)
+
+      await store().rollbackTransaction(req)
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found == null).be.True()
+    })
+
+    it('should be able to commit (remove)', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await getCollection(colName).insert(t1)
+
+      await store().beginTransaction(req)
+
+      try {
+        await getCollection(colName).remove({
+          name: 't1'
+        }, req)
+
+        await store().commitTransaction(req)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found == null).be.True()
+    })
+
+    it('should be able to rollback (remove)', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await getCollection(colName).insert(t1)
+
+      await store().beginTransaction(req)
+
+      await getCollection(colName).remove({
+        name: 't1'
+      }, req)
+
+      await store().rollbackTransaction(req)
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found != null).be.True()
+    })
+
+    it('should be able to commit across collections', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const colName2 = !isInternal ? 'templates2' : 'internalTemplates2'
+
+      const req = Request({})
+      await store().beginTransaction(req)
+
+      try {
+        const t1 = {
+          name: 't1',
+          engine: 'none',
+          recipe: 'html'
+        }
+
+        const t2 = {
+          name: 't2',
+          engine: 'none',
+          recipe: 'html'
+        }
+
+        await Promise.all([
+          getCollection(colName).insert(t1, req),
+          getCollection(colName2).insert(t2, req)
+        ])
+
+        await store().commitTransaction(req)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+      const found2 = await getCollection(colName2).findOne({ name: 't2' })
+
+      should(found != null).be.True()
+      should(found2 != null).be.True()
+    })
+
+    it('should be able to rollback across collections', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const colName2 = !isInternal ? 'templates2' : 'internalTemplates2'
+      const req = Request({})
+      await store().beginTransaction(req)
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      const t2 = {
+        name: 't2',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await Promise.all([
+        getCollection(colName).insert(t1, req),
+        getCollection(colName).insert(t2, req)
+      ])
+
+      await store().rollbackTransaction(req)
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+      const found2 = await getCollection(colName2).findOne({ name: 't1' })
+
+      should(found == null).be.True()
+      should(found2 == null).be.True()
+    })
+
+    it('should be able to see entity created inside transaction', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+      await store().beginTransaction(req)
+
+      try {
+        const t1 = {
+          name: 't1',
+          engine: 'none',
+          recipe: 'html'
+        }
+
+        await getCollection(colName).insert(t1, req)
+
+        const found = await getCollection(colName).findOne({ name: 't1' }, req)
+
+        should(found != null).be.True()
+
+        await store().commitTransaction(req)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found != null).be.True()
+    })
+
+    it('should be able to see entity updated inside transaction', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await getCollection(colName).insert(t1)
+
+      await store().beginTransaction(req)
+
+      try {
+        await getCollection(colName).update({
+          name: 't1'
+        }, {
+          $set: {
+            engine: 'handlebars'
+          }
+        }, req)
+
+        const found = await getCollection(colName).findOne({ name: 't1' }, req)
+
+        should(found != null).be.True()
+
+        await store().commitTransaction(req)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found != null).be.True()
+    })
+
+    it('should be able to see entity updated properties inside transaction', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await getCollection(colName).insert(t1)
+
+      await store().beginTransaction(req)
+
+      try {
+        await getCollection(colName).update({
+          name: 't1'
+        }, {
+          $set: {
+            engine: 'handlebars'
+          }
+        }, req)
+
+        const found = await getCollection(colName).findOne({ name: 't1' }, req)
+
+        should(found.engine).be.eql('handlebars')
+
+        await store().commitTransaction(req)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found.engine).be.eql('handlebars')
+    })
+
+    it('should be able to see entity upsert inside transaction', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await store().beginTransaction(req)
+
+      try {
+        await getCollection(colName).insert(t1, req)
+
+        await getCollection(colName).update({
+          name: 't1'
+        }, {
+          $set: {
+            engine: 'handlebars'
+          }
+        }, req)
+
+        const found = await getCollection(colName).findOne({ name: 't1' }, req)
+
+        should(found != null).be.True()
+
+        await store().commitTransaction(req)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found != null).be.True()
+    })
+
+    it('should not be able to see entity removed inside transaction', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await getCollection(colName).insert(t1)
+
+      await store().beginTransaction(req)
+
+      try {
+        await getCollection(colName).remove({
+          name: 't1'
+        }, req)
+
+        const found = await getCollection(colName).findOne({ name: 't1' }, req)
+
+        should(found == null).be.True()
+
+        await store().commitTransaction(req)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found == null).be.True()
+    })
+
+    it('should not be able to see entity created in transaction from outside', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+      await store().beginTransaction(req)
+
+      try {
+        const t1 = {
+          name: 't1',
+          engine: 'none',
+          recipe: 'html'
+        }
+
+        await getCollection(colName).insert(t1, req)
+
+        const found = await getCollection(colName).findOne({ name: 't1' })
+
+        should(found == null).be.True()
+
+        await store().commitTransaction(req)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found != null).be.True()
+    })
+
+    it('should be able to see entity updated in transaction from outside', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await getCollection(colName).insert(t1)
+
+      await store().beginTransaction(req)
+
+      try {
+        await getCollection(colName).update({
+          name: 't1'
+        }, {
+          $set: {
+            engine: 'handlebars'
+          }
+        }, req)
+
+        const found = await getCollection(colName).findOne({ name: 't1' })
+
+        should(found != null).be.True()
+
+        await store().commitTransaction(req)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found != null).be.True()
+    })
+
+    it('should not be able to see entity updated properties from outside', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await getCollection(colName).insert(t1)
+
+      await store().beginTransaction(req)
+
+      try {
+        await getCollection(colName).update({
+          name: 't1'
+        }, {
+          $set: {
+            engine: 'handlebars'
+          }
+        }, req)
+
+        const found = await getCollection(colName).findOne({ name: 't1' })
+
+        should(found.engine).be.eql('none')
+
+        await store().commitTransaction(req)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found.engine).be.eql('handlebars')
+    })
+
+    it('should not be able to see entity upsert in transaction from outside', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await store().beginTransaction(req)
+
+      try {
+        await getCollection(colName).insert(t1, req)
+
+        await getCollection(colName).update({
+          name: 't1'
+        }, {
+          $set: {
+            engine: 'handlebars'
+          }
+        }, req)
+
+        const found = await getCollection(colName).findOne({ name: 't1' })
+
+        should(found == null).be.True()
+
+        await store().commitTransaction(req)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found != null).be.True()
+    })
+
+    it('should be able to see entity removed in transaction from outside', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await getCollection(colName).insert(t1)
+
+      await store().beginTransaction(req)
+
+      try {
+        await getCollection(colName).remove({
+          name: 't1'
+        }, req)
+
+        const found = await getCollection(colName).findOne({ name: 't1' })
+
+        should(found != null).be.True()
+
+        await store().commitTransaction(req)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found == null).be.True()
+    })
+
+    it('should not be able to see entity created in transaction from another transaction', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+      const req2 = Request({})
+
+      await store().beginTransaction(req)
+      await store().beginTransaction(req2)
+
+      try {
+        const t1 = {
+          name: 't1',
+          engine: 'none',
+          recipe: 'html'
+        }
+
+        await getCollection(colName).insert(t1, req)
+
+        const found = await getCollection(colName).findOne({ name: 't1' }, req2)
+
+        should(found == null).be.True()
+
+        await store().commitTransaction(req)
+        await store().commitTransaction(req2)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        await store().rollbackTransaction(req2)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found != null).be.True()
+    })
+
+    it('should be able to see entity updated in transaction from another transaction', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+      const req2 = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await getCollection(colName).insert(t1)
+
+      await store().beginTransaction(req)
+      await store().beginTransaction(req2)
+
+      try {
+        await getCollection(colName).update({
+          name: 't1'
+        }, {
+          $set: {
+            engine: 'handlebars'
+          }
+        }, req)
+
+        const found = await getCollection(colName).findOne({ name: 't1' }, req2)
+
+        should(found != null).be.True()
+
+        await store().commitTransaction(req)
+        await store().commitTransaction(req2)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        await store().rollbackTransaction(req2)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found != null).be.True()
+    })
+
+    it('should not be able to see entity updated properties from another transaction', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+      const req2 = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await getCollection(colName).insert(t1)
+
+      await store().beginTransaction(req)
+      await store().beginTransaction(req2)
+
+      try {
+        await getCollection(colName).update({
+          name: 't1'
+        }, {
+          $set: {
+            engine: 'handlebars'
+          }
+        }, req)
+
+        const found = await getCollection(colName).findOne({ name: 't1' }, req2)
+
+        should(found.engine).be.eql('none')
+
+        await store().commitTransaction(req)
+        await store().commitTransaction(req2)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        await store().rollbackTransaction(req2)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found.engine).be.eql('handlebars')
+    })
+
+    it('should not be able to see entity upsert in transaction from another transaction', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+      const req2 = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await store().beginTransaction(req)
+      await store().beginTransaction(req2)
+
+      try {
+        await getCollection(colName).insert(t1, req)
+
+        await getCollection(colName).update({
+          name: 't1'
+        }, {
+          $set: {
+            engine: 'handlebars'
+          }
+        }, req)
+
+        const found = await getCollection(colName).findOne({ name: 't1' }, req2)
+
+        should(found == null).be.True()
+
+        await store().commitTransaction(req)
+        await store().commitTransaction(req2)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        await store().rollbackTransaction(req2)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found != null).be.True()
+    })
+
+    it('should be able to see entity removed in transaction from another transaction', async () => {
+      const colName = !isInternal ? 'templates' : 'internalTemplates'
+      const req = Request({})
+      const req2 = Request({})
+
+      const t1 = {
+        name: 't1',
+        engine: 'none',
+        recipe: 'html'
+      }
+
+      await getCollection(colName).insert(t1)
+
+      await store().beginTransaction(req)
+      await store().beginTransaction(req2)
+
+      try {
+        await getCollection(colName).remove({
+          name: 't1'
+        }, req)
+
+        const found = await getCollection(colName).findOne({ name: 't1' }, req2)
+
+        should(found != null).be.True()
+
+        await store().commitTransaction(req)
+        await store().commitTransaction(req2)
+      } catch (e) {
+        await store().rollbackTransaction(req)
+        await store().rollbackTransaction(req2)
+        throw e
+      }
+
+      const found = await getCollection(colName).findOne({ name: 't1' })
+
+      should(found == null).be.True()
+    })
   })
 }
