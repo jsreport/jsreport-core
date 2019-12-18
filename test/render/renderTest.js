@@ -235,7 +235,7 @@ describe('render', () => {
     const logs = parentReq.context.logs.map(l => l.message)
 
     logs.should.containEql('hello')
-    logs.should.containEql('Rendering engine none')
+    logs.should.containEql('Rendering engine none using dedicated-process strategy')
   })
 
   it('should propagate logs to the parent request (error case)', async () => {
@@ -261,7 +261,7 @@ describe('render', () => {
       const logs = parentReq.context.logs.map(l => l.message)
 
       logs.should.containEql('hello')
-      logs.should.containEql('Rendering engine none')
+      logs.should.containEql('Rendering engine none using dedicated-process strategy')
     }
   })
 
