@@ -489,10 +489,8 @@ function collectionTests (store, isInternal, runTransactions) {
             recipe: 'html'
           }
 
-          await Promise.all([
-            getCollection(colName).insert(t1, req),
-            getCollection(colName2).insert(t2, req)
-          ])
+          await getCollection(colName).insert(t1, req)
+          await getCollection(colName2).insert(t2, req)
 
           await store().commitTransaction(req)
         } catch (e) {
@@ -525,10 +523,8 @@ function collectionTests (store, isInternal, runTransactions) {
           recipe: 'html'
         }
 
-        await Promise.all([
-          getCollection(colName).insert(t1, req),
-          getCollection(colName).insert(t2, req)
-        ])
+        await getCollection(colName).insert(t1, req)
+        await getCollection(colName).insert(t2, req)
 
         await store().rollbackTransaction(req)
 
