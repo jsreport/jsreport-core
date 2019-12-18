@@ -2,52 +2,6 @@ const should = require('should')
 const Request = require('../../lib/render/request.js')
 
 module.exports = (store) => {
-  beforeEach(async () => {
-    store().registerComplexType('CommonPhantomType', {
-      header: { type: 'Edm.String', document: { extension: 'html', engine: true } }
-    })
-
-    const templateType = {
-      name: { type: 'Edm.String', publicKey: true },
-      content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
-      recipe: { type: 'Edm.String' },
-      engine: { type: 'Edm.String' },
-      phantom: { type: 'jsreport.CommonPhantomType' }
-    }
-
-    store().registerEntityType('CommonTemplateType', { ...templateType })
-    store().registerEntityType('CommonTemplateType2', { ...templateType })
-
-    store().registerEntitySet('templates', {
-      entityType: 'jsreport.CommonTemplateType',
-      splitIntoDirectories: true
-    })
-
-    store().registerEntitySet('templates2', {
-      entityType: 'jsreport.CommonTemplateType2',
-      splitIntoDirectories: true
-    })
-
-    store().registerEntitySet('internalTemplates', {
-      entityType: 'jsreport.CommonTemplateType',
-      internal: true,
-      splitIntoDirectories: true
-    })
-
-    store().registerEntitySet('internalTemplates2', {
-      entityType: 'jsreport.CommonTemplateType2',
-      internal: true,
-      splitIntoDirectories: true
-    })
-
-    await store().init()
-    return store().drop()
-  })
-
-  afterEach(() => {
-    store().clear()
-  })
-
   describe('public collection', () => {
     collectionTests(store)
   })
@@ -1137,3 +1091,57 @@ function collectionTests (store, isInternal) {
     })
   })
 }
+
+function init (store) {
+  store().registerComplexType('CommonPhantomType', {
+    header: { type: 'Edm.String', document: { extension: 'html', engine: true } }
+  })
+
+  const templateType = {
+    name: { type: 'Edm.String', publicKey: true },
+    content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
+    recipe: { type: 'Edm.String' },
+    engine: { type: 'Edm.String' },
+    phantom: { type: 'jsreport.CommonPhantomType' }
+  }
+
+  store().registerEntityType('CommonTemplateType', { ...templateType })
+  store().registerEntityType('CommonTemplateType2', { ...templateType })
+
+  store().registerEntitySet('templates', {
+    entityType: 'jsreport.CommonTemplateType',
+    splitIntoDirectories: true
+  })
+
+  store().registerEntitySet('templates2', {
+    entityType: 'jsreport.CommonTemplateType2',
+    splitIntoDirectories: true
+  })
+
+  store().registerEntitySet('internalTemplates', {
+    entityType: 'jsreport.CommonTemplateType',
+    internal: true,
+    splitIntoDirectories: true
+  })
+
+  store().registerEntitySet('internalTemplates2', {
+    entityType: 'jsreport.CommonTemplateType2',
+    internal: true,
+    splitIntoDirectories: true
+  })
+}
+
+async function clean (store) {
+  await Promise.all(Object.keys(store().collections).map(async (collectionName) => {
+    const all = await store().collection(collectionName).find({})
+    return Promise.all(all.map((e) => store().collection(collectionName).remove({ _id: e._id })))
+  }))
+
+  await Promise.all(Object.keys(store().internalCollections).map(async (collectionName) => {
+    const all = await store().internalCollection(collectionName).find({})
+    return Promise.all(all.map((e) => store().internalCollection(collectionName).remove({ _id: e._id })))
+  }))
+}
+
+module.exports.init = init
+module.exports.clean = clean

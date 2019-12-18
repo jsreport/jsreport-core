@@ -10,7 +10,7 @@ describe('document store', () => {
   let store
 
   describe('common', async () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       const validator = new SchemaValidator()
 
       const encryption = Encryption({
@@ -27,12 +27,22 @@ describe('document store', () => {
         logger: (require('../util/testLogger.js'))()
       }, validator, encryption)
 
+      await common.init(() => store)
+
       return store.init()
     })
 
     common(() => store)
 
-    afterEach(() => reporter && reporter.close())
+    afterEach(async () => {
+      if (store) {
+        await common.clean(() => store)
+      }
+
+      if (reporter) {
+        await reporter.close()
+      }
+    })
   })
 
   describe('with reporter', async () => {
