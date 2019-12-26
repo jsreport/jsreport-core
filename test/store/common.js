@@ -294,6 +294,7 @@ function collectionTests (store, isInternal, runTransactions) {
 
         const t1 = {
           name: 't1',
+          content: 't1',
           engine: 'none',
           recipe: 'html'
         }
@@ -307,6 +308,7 @@ function collectionTests (store, isInternal, runTransactions) {
             name: 't1'
           }, {
             $set: {
+              content: 't1-new',
               engine: 'handlebars'
             }
           }, req)
@@ -320,6 +322,7 @@ function collectionTests (store, isInternal, runTransactions) {
         const found = await getCollection(colName).findOne({ name: 't1' })
 
         should(found.engine).be.eql('handlebars')
+        should(found.content).be.eql('t1-new')
       })
 
       it('should be able to rollback (update)', async () => {
@@ -1100,7 +1103,7 @@ function init (store) {
     content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
     recipe: { type: 'Edm.String' },
     engine: { type: 'Edm.String' },
-    phantom: { type: 'jsreport.CommonPhantomType' }
+    phantom: { type: 'jsreport.CommonPhantomType', schema: { type: 'null' } }
   }
 
   store().registerEntityType('CommonTemplateType', { ...templateType })
