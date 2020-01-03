@@ -246,6 +246,7 @@ function collectionTests (store, isInternal, runTransactions) {
       it('should be able to commit (insert)', async () => {
         const colName = !isInternal ? 'templates' : 'internalTemplates'
         const req = Request({})
+
         await store().beginTransaction(req)
 
         try {
@@ -1083,6 +1084,132 @@ function collectionTests (store, isInternal, runTransactions) {
           await store().rollbackTransaction(req)
           await store().rollbackTransaction(req2)
           throw e
+        }
+
+        const found = await getCollection(colName).findOne({ name: 't1' })
+
+        should(found == null).be.True()
+      })
+
+      it('should not be able to commit changes of transaction from another transaction (insert)', async () => {
+        const colName = !isInternal ? 'templates' : 'internalTemplates'
+        const req = Request({})
+        const req2 = Request({})
+
+        const t1 = {
+          name: 't1',
+          engine: 'none',
+          recipe: 'html'
+        }
+
+        await store().beginTransaction(req)
+        await store().beginTransaction(req2)
+
+        try {
+          await getCollection(colName).insert(t1, req)
+
+          await store().commitTransaction(req2)
+
+          let found = await getCollection(colName).findOne({ name: 't1' }, req2)
+
+          should(found == null).be.True()
+
+          await store().commitTransaction(req)
+
+          found = await getCollection(colName).findOne({ name: 't1' }, req)
+
+          should(found != null).be.True()
+        } catch (e) {
+          await store().rollbackTransaction(req)
+          await store().rollbackTransaction(req2)
+        }
+
+        const found = await getCollection(colName).findOne({ name: 't1' })
+
+        should(found != null).be.True()
+      })
+
+      it('should not be able to commit changes of transaction from another transaction (update)', async () => {
+        const colName = !isInternal ? 'templates' : 'internalTemplates'
+        const req = Request({})
+        const req2 = Request({})
+
+        const t1 = {
+          name: 't1',
+          engine: 'none',
+          recipe: 'html'
+        }
+
+        await getCollection(colName).insert(t1)
+
+        await store().beginTransaction(req)
+        await store().beginTransaction(req2)
+
+        try {
+          await getCollection(colName).update({
+            name: 't1'
+          }, {
+            $set: {
+              engine: 'handlebars'
+            }
+          }, req)
+
+          await store().commitTransaction(req2)
+
+          let found = await getCollection(colName).findOne({ name: 't1' }, req2)
+
+          should(found.engine).be.eql('none')
+
+          await store().commitTransaction(req)
+
+          found = await getCollection(colName).findOne({ name: 't1' }, req)
+
+          should(found.engine).be.eql('handlebars')
+        } catch (e) {
+          await store().rollbackTransaction(req)
+          await store().rollbackTransaction(req2)
+        }
+
+        const found = await getCollection(colName).findOne({ name: 't1' })
+
+        should(found.engine).be.eql('handlebars')
+      })
+
+      it('should not be able to commit changes of transaction from another transaction (remove)', async () => {
+        const colName = !isInternal ? 'templates' : 'internalTemplates'
+        const req = Request({})
+        const req2 = Request({})
+
+        const t1 = {
+          name: 't1',
+          engine: 'none',
+          recipe: 'html'
+        }
+
+        await getCollection(colName).insert(t1)
+
+        await store().beginTransaction(req)
+        await store().beginTransaction(req2)
+
+        try {
+          await getCollection(colName).remove({
+            name: 't1'
+          }, req)
+
+          await store().commitTransaction(req2)
+
+          let found = await getCollection(colName).findOne({ name: 't1' }, req2)
+
+          should(found != null).be.True()
+
+          await store().commitTransaction(req)
+
+          found = await getCollection(colName).findOne({ name: 't1' }, req)
+
+          should(found == null).be.True()
+        } catch (e) {
+          await store().rollbackTransaction(req)
+          await store().rollbackTransaction(req2)
         }
 
         const found = await getCollection(colName).findOne({ name: 't1' })
