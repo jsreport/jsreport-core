@@ -386,12 +386,21 @@ describe('render', () => {
   })
 })
 
-describe('render (single timeout)', () => {
+function timeoutTests (asReqOption = false) {
   let reporter
   let reportTimeout = 200
+  let renderOpts
 
   beforeEach(() => {
-    reporter = core({ discover: false, reportTimeout })
+    let opts = { discover: false }
+
+    if (!asReqOption) {
+      opts.reportTimeout = reportTimeout
+    } else {
+      renderOpts = { timeout: reportTimeout }
+    }
+
+    reporter = core(opts)
     return reporter.init()
   })
 
@@ -411,7 +420,8 @@ describe('render (single timeout)', () => {
         engine: 'none',
         content: 'foo',
         recipe: 'html'
-      }
+      },
+      options: renderOpts
     }).should.be.rejectedWith(/Render timeout/)
   })
 
@@ -422,7 +432,8 @@ describe('render (single timeout)', () => {
         content: 'foo',
         recipe: 'html',
         helpers: 'while (true) {}'
-      }
+      },
+      options: renderOpts
     }).should.be.rejectedWith(/Timeout during execution of templating engine/)
   })
 
@@ -436,7 +447,8 @@ describe('render (single timeout)', () => {
             engine: 'none',
             content: 'bar',
             recipe: 'html'
-          }
+          },
+          options: renderOpts
         }, req)
 
         req.template.content += ` ${resp.content}`
@@ -448,7 +460,16 @@ describe('render (single timeout)', () => {
         engine: 'none',
         content: 'foo',
         recipe: 'html'
-      }
+      },
+      options: renderOpts
     }).should.be.rejectedWith(/Render timeout/)
   })
+}
+
+describe('render (single timeout)', () => {
+  timeoutTests()
+})
+
+describe('render (single timeout as req.options.timeout)', () => {
+  timeoutTests(true)
 })
