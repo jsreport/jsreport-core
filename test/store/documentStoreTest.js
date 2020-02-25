@@ -120,6 +120,9 @@ describe('document store', () => {
 
       const previousModificationDate = doc.modificationDate
 
+      // wait a bit to simulate that the update is done in another time in the future
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
       await reporter.documentStore.collection('reports').update({
         _id: doc._id
       }, {

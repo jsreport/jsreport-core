@@ -397,6 +397,7 @@ function timeoutTests (asReqOption = false) {
     if (!asReqOption) {
       opts.reportTimeout = reportTimeout
     } else {
+      opts.enableRequestReportTimeout = true
       renderOpts = { timeout: reportTimeout }
     }
 
@@ -470,6 +471,6 @@ describe('render (single timeout)', () => {
   timeoutTests()
 })
 
-describe('render (single timeout as req.options.timeout)', () => {
+describe('render (single timeout per request as req.options.timeout)', () => {
   timeoutTests(true)
 })
