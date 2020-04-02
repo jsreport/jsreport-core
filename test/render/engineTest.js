@@ -200,6 +200,47 @@ describe('engine', () => {
       })
     })
 
+    it('should be able to run async helper', (done) => {
+      engine({
+        safeSandboxPath,
+        template: {
+          content: '',
+          helpers: 'async function a() { return "foo"; }'
+        },
+        templatingEngines: { templateCache: { enabled: false }, modules: [], nativeModules: [], allowedModules: [] },
+        engine: path.join(__dirname, 'helpersEngine.js')
+      }, () => {
+      }, (err, res) => {
+        if (err) {
+          return done(err)
+        }
+
+        res.content.should.be.eql('foo')
+        done()
+      })
+    })
+
+    it('should throw valid Error when error from async helper', (done) => {
+      engine({
+        safeSandboxPath,
+        template: {
+          content: 'content',
+          helpers: 'async function a() { throw new Error("async error") }'
+        },
+        nativeModules: [],
+        engine: path.join(__dirname, 'helpersEngine.js')
+      }, function () {
+      }, function (err, res) {
+        if (!err) {
+          return done(new Error('Should have failed'))
+        }
+
+        err.should.be.Error()
+        err.message.should.be.eql('async error')
+        done()
+      })
+    })
+
     it('should send engine options to the engine', (done) => {
       const engineOpts = { foo: 'bar' }
 

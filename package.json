@@ -15,6 +15,7 @@
     "@jsreport/mingo": "2.4.1",
     "ajv": "6.10.0",
     "app-root-path": "2.0.1",
+    "async-replace": "1.0.1",
     "bluebird": "3.5.4",
     "camelcase": "5.0.0",
     "debug": "3.1.0",
