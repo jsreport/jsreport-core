@@ -28,7 +28,7 @@
     "lodash.omit": "4.5.0",
     "lodash.set": "4.3.2",
     "lru-cache": "4.1.1",
-    "mkdirp": "0.5.1",
+    "mkdirp": "0.5.5",
     "nanoid": "1.0.2",
     "nconf": "0.10.0",
     "node.extend.without.arrays": "1.1.6",
