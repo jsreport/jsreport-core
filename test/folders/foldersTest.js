@@ -142,6 +142,23 @@ describe('folders', function () {
       folder.shortid.should.be.eql('a')
     })
 
+    it('resolveFolderFromPath should resolve folder from absolute path (last part is folder)', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a',
+        shortid: 'a'
+      })
+      await reporter.documentStore.collection('folders').insert({
+        name: 'b',
+        shortid: 'b',
+        folder: {
+          shortid: 'a'
+        }
+      })
+
+      const folder = await reporter.folders.resolveFolderFromPath('/a/b')
+      folder.shortid.should.be.eql('b')
+    })
+
     it('resolveFolderFromPath should resolve folder from absolute path with spaces', async () => {
       await reporter.documentStore.collection('folders').insert({
         name: 'a a',
@@ -211,6 +228,205 @@ describe('folders', function () {
         }
       }))
       folder.shortid.should.be.eql('b')
+    })
+
+    it('resolveEntityFromPath should resolve entity from absolute path', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a',
+        shortid: 'a'
+      })
+      await reporter.documentStore.collection('templates').insert({
+        name: 'b',
+        shortid: 'b',
+        folder: {
+          shortid: 'a'
+        }
+      })
+
+      const { entitySet, entity } = await reporter.folders.resolveEntityFromPath('/a/b')
+      entitySet.should.be.eql('templates')
+      entity.name.should.be.eql('b')
+    })
+
+    it('resolveEntityFromPath should resolve entity from absolute path (target entitySet)', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a',
+        shortid: 'a'
+      })
+      await reporter.documentStore.collection('templates').insert({
+        name: 'b',
+        shortid: 'b',
+        folder: {
+          shortid: 'a'
+        }
+      })
+
+      const { entitySet, entity } = await reporter.folders.resolveEntityFromPath('/a/b', 'templates')
+      entitySet.should.be.eql('templates')
+      entity.name.should.be.eql('b')
+    })
+
+    it('resolveEntityFromPath should resolve entity from absolute path with spaces', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a a',
+        shortid: 'a'
+      })
+      await reporter.documentStore.collection('templates').insert({
+        name: 'b',
+        shortid: 'b',
+        folder: {
+          shortid: 'a'
+        }
+      })
+
+      const { entitySet, entity } = await reporter.folders.resolveEntityFromPath('/a a/b')
+      entitySet.should.be.eql('templates')
+      entity.name.should.be.eql('b')
+    })
+
+    it('resolveEntityFromPath should resolve entity from absolute path with spaces (target entitySet)', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a a',
+        shortid: 'a'
+      })
+      await reporter.documentStore.collection('templates').insert({
+        name: 'b',
+        shortid: 'b',
+        folder: {
+          shortid: 'a'
+        }
+      })
+
+      const { entitySet, entity } = await reporter.folders.resolveEntityFromPath('/a a/b', 'templates')
+      entitySet.should.be.eql('templates')
+      entity.name.should.be.eql('b')
+    })
+
+    it('resolveEntityFromPath should return empty for not found', async () => {
+      await reporter.documentStore.collection('templates').insert({
+        name: 'b',
+        shortid: 'b'
+      })
+
+      const result = await reporter.folders.resolveEntityFromPath('/c')
+      should(result).be.not.ok()
+    })
+
+    it('resolveEntityFromPath should return empty for not found (target entitySet)', async () => {
+      await reporter.documentStore.collection('templates').insert({
+        name: 'b',
+        shortid: 'b'
+      })
+
+      const result = await reporter.folders.resolveEntityFromPath('/c', 'templates')
+      should(result).be.not.ok()
+    })
+
+    it('resolveEntityFromPath should not return entity for un-existing parent', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'b',
+        shortid: 'b'
+      })
+
+      const result = await reporter.folders.resolveEntityFromPath('/unknown/b')
+      should(result).be.not.ok()
+    })
+
+    it('resolveEntityFromPath should not return entity for un-existing parent (target entitySet)', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'b',
+        shortid: 'b'
+      })
+
+      const result = await reporter.folders.resolveEntityFromPath('/unknown/b', 'folders')
+      should(result).be.not.ok()
+    })
+
+    it('resolveEntityFromPath should not return entity for un-existing path', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'b',
+        shortid: 'b'
+      })
+
+      await reporter.documentStore.collection('folders').insert({
+        name: 'd',
+        shortid: 'd',
+        folder: { shortid: 'b' }
+      })
+
+      const result = await reporter.folders.resolveEntityFromPath('/unknown/b/another/d')
+      should(result).be.not.ok()
+    })
+
+    it('resolveEntityFromPath should not return entity for un-existing path (target entitySet)', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'b',
+        shortid: 'b'
+      })
+
+      await reporter.documentStore.collection('folders').insert({
+        name: 'd',
+        shortid: 'd',
+        folder: { shortid: 'b' }
+      })
+
+      const result = await reporter.folders.resolveEntityFromPath('/unknown/b/another/d', 'folders')
+      should(result).be.not.ok()
+    })
+
+    it('resolveEntityFromPath should resolve entity from relative path', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a',
+        shortid: 'a'
+      })
+      await reporter.documentStore.collection('folders').insert({
+        name: 'b',
+        shortid: 'b'
+      })
+
+      const result = await reporter.folders.resolveEntityFromPath('../b', undefined, RenderRequest({
+        context: {
+          currentFolderPath: '/a'
+        }
+      }))
+
+      result.entitySet.should.be.eql('folders')
+      result.entity.shortid.should.be.eql('b')
+    })
+
+    it('resolveEntityFromPath should resolve entity from relative path (target entitySet)', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a',
+        shortid: 'a'
+      })
+      await reporter.documentStore.collection('folders').insert({
+        name: 'b',
+        shortid: 'b'
+      })
+
+      const result = await reporter.folders.resolveEntityFromPath('../b', 'folders', RenderRequest({
+        context: {
+          currentFolderPath: '/a'
+        }
+      }))
+
+      result.entitySet.should.be.eql('folders')
+      result.entity.shortid.should.be.eql('b')
+    })
+
+    it('resolveEntityFromPath should not resolve entity if it does not match target entitySet', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a',
+        shortid: 'a'
+      })
+      await reporter.documentStore.collection('folders').insert({
+        name: 'b',
+        shortid: 'b'
+      })
+
+      const result = await reporter.folders.resolveEntityFromPath('/a/b', 'templates')
+
+      should(result).not.be.ok()
     })
 
     it('inserting splited entitity into root with reserved name should be blocked', () => {
