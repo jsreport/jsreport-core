@@ -179,6 +179,14 @@ describe('document store', () => {
       return store.collection('templates').insert({ name: '<test' }).should.be.rejected()
     })
 
+    it('insert should fail with invalid name (dot)', async () => {
+      return store.collection('templates').insert({ name: '.' }).should.be.rejected()
+    })
+
+    it('insert should fail with invalid name (two dot)', async () => {
+      return store.collection('templates').insert({ name: '..' }).should.be.rejected()
+    })
+
     it('insert should fail with empty string in name', async () => {
       return store.collection('templates').insert({ name: '' }).should.be.rejected()
     })
