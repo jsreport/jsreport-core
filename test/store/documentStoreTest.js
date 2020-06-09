@@ -227,6 +227,22 @@ describe('document store', () => {
       })).be.rejected()
     })
 
+    it('should call beforeFindListener without user in req.context during insert', async () => {
+      reporter.documentStore.collection('templates').beforeFindListeners.add('custom-find-listener', (q, p, req) => {
+        return should(req.context.user).be.undefined()
+      })
+
+      // this test validates that user is not taken into consideration during validation listeners
+      const req = reporter.Request({ context: { user: { name: 'person' } } })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 'a',
+        shortid: 'a'
+      }, req)
+
+      req.context.user.name.should.be.eql('person')
+    })
+
     it('should validate duplicated humanReadableKey on update', async () => {
       const a = await store.collection('templates').insert({
         name: 'a',
