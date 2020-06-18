@@ -179,6 +179,23 @@ function collectionTests (store, isInternal, runTransactions) {
     })).be.rejected()
   })
 
+  it('should validate duplicated _id on insert', async () => {
+    const newEntity = await store().collection('templates').insert({
+      name: 'a',
+      content: 'x',
+      engine: 'none',
+      recipe: 'html'
+    })
+
+    return should(store().collection('templates').insert({
+      _id: newEntity._id,
+      name: 'b',
+      content: 'x',
+      engine: 'none',
+      recipe: 'html'
+    })).be.rejected()
+  })
+
   it('should validate duplicated humanReadableKey on insert', async () => {
     await store().collection('templates').insert({
       name: 'a',
