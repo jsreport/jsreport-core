@@ -1,38 +1,30 @@
 const should = require('should')
 const jsreport = require('../../')
-const DocumentStore = require('../../lib/store/documentStore.js')
-const SchemaValidator = require('../../lib/util/schemaValidator')
-const Encryption = require('../../lib/util/encryption')
 const common = require('./common.js')
 
 describe('document store', () => {
-  let reporter
-  let store
+  describe('common', () => {
+    let reporter
+    let store
 
-  describe('common', async () => {
     beforeEach(async () => {
-      const validator = new SchemaValidator()
-
-      const encryption = Encryption({
-        options: {
-          encryption: {
-            secretKey: 'foo1234567891234',
-            enabled: true
-          }
+      reporter = await init({
+        store: {
+          provider: 'memory'
+        },
+        encryption: {
+          secretKey: 'foo1234567891234',
+          enabled: true
+        }
+      }, {
+        name: 'customext',
+        main: function (instance, definition) {
+          common.init(() => instance.documentStore)
         }
       })
 
-      store = DocumentStore({
-        store: {provider: 'memory'},
-        logger: (require('../util/testLogger.js'))()
-      }, validator, encryption)
-
-      await common.init(() => store)
-
-      return store.init()
+      store = reporter.documentStore
     })
-
-    common(() => store)
 
     afterEach(async () => {
       if (store) {
@@ -43,9 +35,14 @@ describe('document store', () => {
         await reporter.close()
       }
     })
+
+    common(() => store)
   })
 
-  describe('with reporter', async () => {
+  describe('core', () => {
+    let reporter
+    let store
+
     beforeEach(async () => {
       reporter = await init({
         store: {
@@ -55,6 +52,8 @@ describe('document store', () => {
 
       store = reporter.documentStore
     })
+
+    afterEach(() => reporter && reporter.close())
 
     it('should register internal collection', async () => {
       const type = {
@@ -209,24 +208,6 @@ describe('document store', () => {
       should(t).be.null()
     })
 
-    it('should validate that humanReadableKey is required', async () => {
-      return should(store.collection('foo').insert({
-        name: 'some'
-      })).be.rejected()
-    })
-
-    it('should validate duplicated humanReadableKey on insert', async () => {
-      await store.collection('templates').insert({
-        name: 'a',
-        shortid: 'a'
-      })
-
-      return should(store.collection('templates').insert({
-        name: 'b',
-        shortid: 'a'
-      })).be.rejected()
-    })
-
     it('should call beforeFindListener without user in req.context during insert', async () => {
       reporter.documentStore.collection('templates').beforeFindListeners.add('custom-find-listener', (q, p, req) => {
         return should(req.context.user).be.undefined()
@@ -241,42 +222,6 @@ describe('document store', () => {
       }, req)
 
       req.context.user.name.should.be.eql('person')
-    })
-
-    it('should validate duplicated humanReadableKey on update', async () => {
-      const a = await store.collection('templates').insert({
-        name: 'a',
-        shortid: 'a'
-      })
-
-      await store.collection('templates').insert({
-        name: 'b',
-        shortid: 'b'
-      })
-
-      return should(store.collection('templates').update({
-        _id: a._id
-      }, {
-        $set: {
-          shortid: 'b'
-        }
-      })).be.rejected()
-    })
-
-    it('should validate duplicated humanReadableKey on upsert', async () => {
-      await store.collection('templates').insert({
-        name: 'a',
-        shortid: 'a'
-      })
-
-      return should(reporter.documentStore.collection('templates').update({
-        name: 'b'
-      }, {
-        $set: {
-          name: 'b',
-          shortid: 'a'
-        }
-      }, { upsert: true })).be.rejected()
     })
 
     describe('type json schemas', () => {
@@ -471,76 +416,78 @@ describe('document store', () => {
         })
       })
     })
-
-    afterEach(() => reporter && reporter.close())
   })
 })
 
-function init (options) {
+function init (options, customExt) {
   const reporter = jsreport({
     templatingEngines: { strategy: 'in-process' },
     migrateEntitySetsToFolders: false,
     ...options
   })
 
-  reporter.use({
-    name: 'templates',
-    main: function (reporter, definition) {
-      Object.assign(reporter.documentStore.model.entityTypes.TemplateType, {
-        name: { type: 'Edm.String', publicKey: true }
-      })
+  if (customExt) {
+    reporter.use(customExt)
+  } else {
+    reporter.use({
+      name: 'templates',
+      main: function (reporter, definition) {
+        Object.assign(reporter.documentStore.model.entityTypes.TemplateType, {
+          name: { type: 'Edm.String', publicKey: true }
+        })
 
-      reporter.documentStore.registerEntitySet('templates', {
-        entityType: 'jsreport.TemplateType',
-        splitIntoDirectories: true
-      })
+        reporter.documentStore.registerEntitySet('templates', {
+          entityType: 'jsreport.TemplateType',
+          splitIntoDirectories: true
+        })
 
-      reporter.documentStore.registerEntityType('ReportType', {
-        name: { type: 'Edm.String', publicKey: true }
-      })
+        reporter.documentStore.registerEntityType('ReportType', {
+          name: { type: 'Edm.String', publicKey: true }
+        })
 
-      reporter.documentStore.registerEntityType('ValidationTestType', {
-        name: { type: 'Edm.String', publicKey: true },
-        alias: { type: 'Edm.String' },
-        followers: { type: 'Edm.Int32' },
-        owner: { type: 'Edm.Boolean' },
-        customDate: { type: 'Edm.DateTimeOffset' },
-        customDate2: { type: 'Edm.DateTimeOffset' },
-        creationDate: { type: 'Edm.DateTimeOffset' }
-      })
+        reporter.documentStore.registerEntityType('ValidationTestType', {
+          name: { type: 'Edm.String', publicKey: true },
+          alias: { type: 'Edm.String' },
+          followers: { type: 'Edm.Int32' },
+          owner: { type: 'Edm.Boolean' },
+          customDate: { type: 'Edm.DateTimeOffset' },
+          customDate2: { type: 'Edm.DateTimeOffset' },
+          creationDate: { type: 'Edm.DateTimeOffset' }
+        })
 
-      reporter.documentStore.registerEntityType('FooType', {
-        name: { type: 'Edm.String', publicKey: true },
-        hummanKey: { type: 'Edm.String' }
-      })
+        reporter.documentStore.registerEntityType('FooType', {
+          name: { type: 'Edm.String', publicKey: true },
+          hummanKey: { type: 'Edm.String' }
+        })
 
-      // entity that define default fields just for the test cases
-      reporter.documentStore.registerEntityType('CustomType', {
-        _id: { type: 'Edm.String' },
-        name: { type: 'Edm.String', publicKey: true },
-        shortid: { type: 'Edm.String' },
-        creationDate: { type: 'Edm.DateTimeOffset' },
-        modificationDate: { type: 'Edm.DateTimeOffset' }
-      })
+        // entity that define default fields just for the test cases
+        reporter.documentStore.registerEntityType('CustomType', {
+          _id: { type: 'Edm.String' },
+          name: { type: 'Edm.String', publicKey: true },
+          shortid: { type: 'Edm.String' },
+          creationDate: { type: 'Edm.DateTimeOffset' },
+          modificationDate: { type: 'Edm.DateTimeOffset' }
+        })
 
-      reporter.documentStore.registerEntitySet('reports', {
-        entityType: 'jsreport.ReportType'
-      })
+        reporter.documentStore.registerEntitySet('reports', {
+          entityType: 'jsreport.ReportType'
+        })
 
-      reporter.documentStore.registerEntitySet('foo', {
-        entityType: 'jsreport.FooType',
-        humanReadableKey: 'hummanKey'
-      })
+        reporter.documentStore.registerEntitySet('foo', {
+          entityType: 'jsreport.FooType',
+          humanReadableKey: 'hummanKey'
+        })
 
-      reporter.documentStore.registerEntitySet('custom', {
-        entityType: 'jsreport.CustomType'
-      })
+        reporter.documentStore.registerEntitySet('custom', {
+          entityType: 'jsreport.CustomType'
+        })
 
-      reporter.documentStore.registerEntitySet('validationTest', {
-        entityType: 'jsreport.ValidationTestType'
-      })
-    }
-  })
+        reporter.documentStore.registerEntitySet('validationTest', {
+          entityType: 'jsreport.ValidationTestType'
+        })
+      }
+    })
+  }
 
   return reporter.init()
 }
