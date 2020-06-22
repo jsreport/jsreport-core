@@ -179,10 +179,6 @@ describe('document store', () => {
     })
 
     it('should set properties with references to other entity sets (.referenceProperties) into entity type information', async () => {
-      const customReferenceProperties = reporter.documentStore.model.entitySets.custom.referenceProperties
-
-      customReferenceProperties.should.have.length(0)
-
       const reportsReferenceProperties = reporter.documentStore.model.entitySets.reports.referenceProperties
 
       reportsReferenceProperties.should.not.have.length(0)
