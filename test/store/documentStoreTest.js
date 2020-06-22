@@ -47,6 +47,10 @@ describe('document store', () => {
       reporter = await init({
         store: {
           provider: 'memory'
+        },
+        encryption: {
+          secretKey: 'foo1234567891234',
+          enabled: true
         }
       })
 
@@ -172,6 +176,220 @@ describe('document store', () => {
       should(doc._shortid).be.undefined()
       should(doc.creationDate).be.undefined()
       should(doc.modificationDate).be.undefined()
+    })
+
+    it('should set properties with references to other entity sets (.referenceProperties) into entity type information', async () => {
+      const customReferenceProperties = reporter.documentStore.model.entitySets.custom.referenceProperties
+
+      customReferenceProperties.should.have.length(0)
+
+      const reportsReferenceProperties = reporter.documentStore.model.entitySets.reports.referenceProperties
+
+      reportsReferenceProperties.should.not.have.length(0)
+
+      reportsReferenceProperties.should.matchAny((t) => t.name.should.be.eql('templateShortid') && t.referenceTo.should.be.eql('templates'))
+      reportsReferenceProperties.should.matchAny((t) => t.name.should.be.eql('templateObj.shortid') && t.referenceTo.should.be.eql('templates'))
+    })
+
+    it('should set properties that reference an entity set (.linkedReferenceProperties) into such entity set type information', async () => {
+      const customLinkedReferenceProperties = reporter.documentStore.model.entitySets.custom.linkedReferenceProperties
+
+      customLinkedReferenceProperties.should.have.length(0)
+
+      const templatesLinkedReferenceProperties = reporter.documentStore.model.entitySets.templates.linkedReferenceProperties
+
+      templatesLinkedReferenceProperties.should.not.have.length(0)
+
+      templatesLinkedReferenceProperties.should.matchAny((t) => t.name.should.be.eql('templateShortid') && t.entitySet.should.be.eql('reports'))
+      templatesLinkedReferenceProperties.should.matchAny((t) => t.name.should.be.eql('templateObj.shortid') && t.entitySet.should.be.eql('reports'))
+    })
+
+    it('should return entity type when passing valid type using documentStore.getEntityType', async () => {
+      const es = reporter.documentStore.model.entitySets.templates
+      const typeInfo = reporter.documentStore.getEntityType(es.entityType)
+      typeInfo.should.be.Object()
+      typeInfo.should.ownProperty('name')
+    })
+
+    it('should return undefined when passing invalid type using documentStore.getEntityType', async () => {
+      const typeInfo = reporter.documentStore.getEntityType('jsreport.DoesNotExists')
+      should(typeInfo).be.undefined()
+    })
+
+    it('should return normalized entity type name when passing true using documentStore.getEntityType', async () => {
+      const es = reporter.documentStore.model.entitySets.templates
+      const typeName = reporter.documentStore.getEntityType(es.entityType, true)
+      typeName.should.be.eql('TemplateType')
+    })
+
+    it('should return entity type when passing valid type using documentStore.getComplexType', async () => {
+      const typeInfo = reporter.documentStore.getComplexType('jsreport.TemplateReportRefType')
+      typeInfo.should.be.Object()
+      typeInfo.should.ownProperty('shortid')
+    })
+
+    it('should return undefined when passing invalid type using documentStore.getComplexType', async () => {
+      const typeInfo = reporter.documentStore.getComplexType('jsreport.DoesNotExists')
+      should(typeInfo).be.undefined()
+    })
+
+    it('should return normalized entity type name when passing true using documentStore.getComplexType', async () => {
+      const typeName = reporter.documentStore.getComplexType('jsreport.TemplateReportRefType', true)
+      typeName.should.be.eql('TemplateReportRefType')
+    })
+
+    it('should resolve property definition for simple case using documentStore.resolvePropertyDefinition', async () => {
+      const es = reporter.documentStore.model.entitySets.templates
+      const typeInfo = reporter.documentStore.getEntityType(es.entityType)
+      const resolved = reporter.documentStore.resolvePropertyDefinition(typeInfo.name)
+      resolved.def.type.should.be.eql('Edm.String')
+    })
+
+    it('should return undefined when passing invalid def using documentStore.resolvePropertyDefinition', async () => {
+      const resolved = reporter.documentStore.resolvePropertyDefinition({ type: 'DoesNotExists' })
+      should(resolved).be.undefined()
+    })
+
+    it('should return sub type when passing def with complex type using documentStore.resolvePropertyDefinition', async () => {
+      const es = reporter.documentStore.model.entitySets.reports
+      const typeInfo = reporter.documentStore.getEntityType(es.entityType)
+      const resolved = reporter.documentStore.resolvePropertyDefinition(typeInfo.templateObj)
+      resolved.def.type.should.be.eql('jsreport.TemplateReportRefType')
+      resolved.subType.should.be.Object()
+      resolved.subType.should.ownProperty('shortid')
+      resolved.subType.shortid.type.should.be.eql('Edm.String')
+    })
+
+    it('should return sub type when passing def with collection of complex type using documentStore.resolvePropertyDefinition', async () => {
+      const es = reporter.documentStore.model.entitySets.reports
+      const typeInfo = reporter.documentStore.getEntityType(es.entityType)
+      const resolved = reporter.documentStore.resolvePropertyDefinition(typeInfo.tags)
+      resolved.def.type.should.be.eql('Collection(jsreport.TagRefType)')
+      resolved.subType.should.be.Object()
+      resolved.subType.should.ownProperty('value')
+      resolved.subType.value.type.should.be.eql('Edm.String')
+    })
+
+    it('should return sub def when passing def with collection of simple type using documentStore.resolvePropertyDefinition', async () => {
+      const es = reporter.documentStore.model.entitySets.reports
+      const typeInfo = reporter.documentStore.getEntityType(es.entityType)
+      const resolved = reporter.documentStore.resolvePropertyDefinition(typeInfo.values)
+      resolved.def.type.should.be.eql('Collection(Edm.String)')
+      should(resolved.subType).be.undefined()
+      resolved.subDef.type.should.be.eql('Edm.String')
+    })
+
+    it('should handle simple values when using collection.serializeProperties', async () => {
+      await reporter.documentStore.collection('reports').insert({
+        name: 'testing',
+        templateShortid: 'reference',
+        tags: [{ value: 'a' }, { value: 'b' }],
+        values: ['a', 'b', 'c']
+      })
+
+      const reports = await reporter.documentStore.collection('reports').find({})
+      const serialized = await reporter.documentStore.collection('reports').serializeProperties(reports)
+
+      serialized.should.have.length(1)
+
+      serialized.should.matchAny((t) => (
+        t.name.should.be.eql('testing') &&
+        t.templateShortid.should.be.eql('reference') &&
+        t.tags.should.have.length(2) &&
+        t.tags[0].should.be.eql({ value: 'a' }) &&
+        t.tags[1].should.be.eql({ value: 'b' }) &&
+        t.values.should.have.length(3) &&
+        t.values[0].should.be.eql('a') &&
+        t.values[1].should.be.eql('b') &&
+        t.values[2].should.be.eql('c')
+      ))
+    })
+
+    it('should handle binary property when using collection.serializeProperties', async () => {
+      await reporter.documentStore.collection('reports').insert({
+        name: 'testing',
+        rawMetadata: Buffer.from('metadata')
+      })
+
+      const reports = await reporter.documentStore.collection('reports').find({})
+      const serialized = await reporter.documentStore.collection('reports').serializeProperties(reports)
+
+      serialized.should.have.length(1)
+
+      serialized.should.matchAny((t) => (
+        t.name.should.be.eql('testing') &&
+        t.rawMetadata.should.be.eql(Buffer.from('metadata').toString('base64'))
+      ))
+    })
+
+    it('should handle encrypted property when using collection.serializeProperties', async () => {
+      const r = await reporter.documentStore.collection('reports').insert({
+        name: 'testing',
+        encryptedValue: 'secret'
+      })
+
+      r.encryptedValue.should.not.be.eql('secret')
+
+      const reports = await reporter.documentStore.collection('reports').find({})
+      const serialized = await reporter.documentStore.collection('reports').serializeProperties(reports)
+
+      serialized.should.have.length(1)
+
+      serialized.should.matchAny((t) => (
+        t.name.should.be.eql('testing') &&
+        t.encryptedValue.should.be.eql('secret')
+      ))
+    })
+
+    it('should handle simple values when using collection.deserializeProperties', async () => {
+      await reporter.documentStore.collection('reports').insert({
+        name: 'testing',
+        templateShortid: 'reference',
+        tags: [{ value: 'a' }, { value: 'b' }],
+        values: ['a', 'b', 'c']
+      })
+
+      const reports = await reporter.documentStore.collection('reports').find({})
+      const serialized = await reporter.documentStore.collection('reports').serializeProperties(reports)
+
+      serialized.should.have.length(1)
+
+      const unserialized = await reporter.documentStore.collection('reports').deserializeProperties(serialized)
+
+      unserialized.should.have.length(1)
+
+      unserialized.should.matchAny((t) => (
+        t.name.should.be.eql('testing') &&
+        t.templateShortid.should.be.eql('reference') &&
+        t.tags.should.have.length(2) &&
+        t.tags[0].should.be.eql({ value: 'a' }) &&
+        t.tags[1].should.be.eql({ value: 'b' }) &&
+        t.values.should.have.length(3) &&
+        t.values[0].should.be.eql('a') &&
+        t.values[1].should.be.eql('b') &&
+        t.values[2].should.be.eql('c')
+      ))
+    })
+
+    it('should handle binary property when using collection.deserializeProperties', async () => {
+      await reporter.documentStore.collection('reports').insert({
+        name: 'testing',
+        rawMetadata: Buffer.from('metadata')
+      })
+
+      const reports = await reporter.documentStore.collection('reports').find({})
+      const serialized = await reporter.documentStore.collection('reports').serializeProperties(reports)
+
+      serialized.should.have.length(1)
+
+      const unserialized = await reporter.documentStore.collection('reports').deserializeProperties(serialized)
+      unserialized.should.have.length(1)
+
+      unserialized.should.matchAny((t) => (
+        t.name.should.be.eql('testing') &&
+        Buffer.isBuffer(t.rawMetadata).should.be.eql(true) &&
+        t.rawMetadata.toString().should.be.eql('metadata')
+      ))
     })
 
     it('insert should fail with invalid name', async () => {
@@ -441,8 +659,22 @@ function init (options, customExt) {
           splitIntoDirectories: true
         })
 
+        reporter.documentStore.registerComplexType('TagRefType', {
+          'value': { type: 'Edm.String' }
+        })
+
+        reporter.documentStore.registerComplexType('TemplateReportRefType', {
+          'shortid': { type: 'Edm.String', referenceTo: 'templates' }
+        })
+
         reporter.documentStore.registerEntityType('ReportType', {
-          name: { type: 'Edm.String', publicKey: true }
+          name: { type: 'Edm.String', publicKey: true },
+          templateShortid: { type: 'Edm.String', referenceTo: 'templates' },
+          templateObj: { type: 'jsreport.TemplateReportRefType' },
+          tags: { type: 'Collection(jsreport.TagRefType)' },
+          values: { type: 'Collection(Edm.String)' },
+          rawMetadata: { type: 'Edm.Binary' },
+          encryptedValue: { type: 'Edm.String', encrypted: true }
         })
 
         reporter.documentStore.registerEntityType('ValidationTestType', {
@@ -484,6 +716,20 @@ function init (options, customExt) {
 
         reporter.documentStore.registerEntitySet('validationTest', {
           entityType: 'jsreport.ValidationTestType'
+        })
+
+        reporter.initializeListeners.add('testing-ext', async (req, res) => {
+          reporter.documentStore.collection('reports').beforeInsertListeners.add('reports-encrypt-value', async (doc, req) => {
+            if (!doc.encryptedValue) {
+              return
+            }
+
+            try {
+              doc.encryptedValue = await reporter.encryption.encrypt(doc.encryptedValue)
+            } catch (e) {
+              throw e
+            }
+          })
         })
       }
     })
