@@ -82,6 +82,133 @@ describe('folders', function () {
       templates.should.have.length(0)
     })
 
+    it('getEntitiesInFolder should return empty array when no child', async () => {
+      const f1 = await reporter.documentStore.collection('folders').insert({
+        name: 'f1',
+        shortid: 'f1'
+      })
+
+      const entities = await reporter.folders.getEntitiesInFolder(f1.shortid, false)
+
+      entities.should.have.length(0)
+    })
+
+    it('getEntitiesInFolder should return entities present in folder', async () => {
+      const f1 = await reporter.documentStore.collection('folders').insert({
+        name: 'f1',
+        shortid: 'f1'
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 't1',
+        folder: {
+          shortid: f1.shortid
+        }
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 't2'
+      })
+
+      const f2 = await reporter.documentStore.collection('folders').insert({
+        name: 'f2',
+        shortid: 'f2',
+        folder: {
+          shortid: f1.shortid
+        }
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 't3',
+        folder: {
+          shortid: f2.shortid
+        }
+      })
+
+      await reporter.documentStore.collection('folders').insert({
+        name: 'f3',
+        shortid: 'f3',
+        folder: {
+          shortid: f1.shortid
+        }
+      })
+
+      const entities = await reporter.folders.getEntitiesInFolder(f1.shortid, false)
+
+      entities.should.have.length(3)
+
+      entities.should.matchAny((e) => e.entitySet.should.be.eql('templates') && e.entity.name.should.be.eql('t1'))
+      entities.should.matchAny((e) => e.entitySet.should.be.eql('folders') && e.entity.name.should.be.eql('f2'))
+      entities.should.matchAny((e) => e.entitySet.should.be.eql('folders') && e.entity.name.should.be.eql('f3'))
+    })
+
+    it('getEntitiesInFolder should return entities recursively in folder', async () => {
+      const f1 = await reporter.documentStore.collection('folders').insert({
+        name: 'f1',
+        shortid: 'f1'
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 't1',
+        folder: {
+          shortid: f1.shortid
+        }
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 't2'
+      })
+
+      const f2 = await reporter.documentStore.collection('folders').insert({
+        name: 'f2',
+        shortid: 'f2',
+        folder: {
+          shortid: f1.shortid
+        }
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 't3',
+        folder: {
+          shortid: f2.shortid
+        }
+      })
+
+      await reporter.documentStore.collection('folders').insert({
+        name: 'f3',
+        shortid: 'f3',
+        folder: {
+          shortid: f1.shortid
+        }
+      })
+
+      const f4 = await reporter.documentStore.collection('folders').insert({
+        name: 'f4',
+        shortid: 'f4',
+        folder: {
+          shortid: f2.shortid
+        }
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 't4',
+        folder: {
+          shortid: f4.shortid
+        }
+      })
+
+      const entities = await reporter.folders.getEntitiesInFolder(f1.shortid, true)
+
+      entities.should.have.length(6)
+
+      entities.should.matchAny((e) => e.entitySet.should.be.eql('folders') && e.entity.name.should.be.eql('f2'))
+      entities.should.matchAny((e) => e.entitySet.should.be.eql('folders') && e.entity.name.should.be.eql('f3'))
+      entities.should.matchAny((e) => e.entitySet.should.be.eql('templates') && e.entity.name.should.be.eql('t1'))
+      entities.should.matchAny((e) => e.entitySet.should.be.eql('folders') && e.entity.name.should.be.eql('f4'))
+      entities.should.matchAny((e) => e.entitySet.should.be.eql('templates') && e.entity.name.should.be.eql('t3'))
+      entities.should.matchAny((e) => e.entitySet.should.be.eql('templates') && e.entity.name.should.be.eql('t4'))
+    })
+
     it('resolveEntityPath should return full hierarchy path of entity', async () => {
       await reporter.documentStore.collection('folders').insert({
         name: 'a',
