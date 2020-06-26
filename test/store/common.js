@@ -196,6 +196,39 @@ function collectionTests (store, isInternal, runTransactions) {
     })).be.rejected()
   })
 
+  it('should validate duplicated _id on update', async () => {
+    const a = await store().collection('templates').insert({
+      name: 'a'
+    })
+
+    const b = await store().collection('templates').insert({
+      name: 'b'
+    })
+
+    return should(store().collection('templates').update({
+      _id: a._id
+    }, {
+      $set: {
+        _id: b._id
+      }
+    })).be.rejected()
+  })
+
+  it('should validate duplicated humanReadableKey on upsert', async () => {
+    const a = await store().collection('templates').insert({
+      name: 'a'
+    })
+
+    return should(store().collection('templates').update({
+      name: 'b'
+    }, {
+      $set: {
+        _id: a._id,
+        name: 'b'
+      }
+    }, { upsert: true })).be.rejected()
+  })
+
   it('should validate duplicated humanReadableKey on insert', async () => {
     await store().collection('templates').insert({
       name: 'a',
