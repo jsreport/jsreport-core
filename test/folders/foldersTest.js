@@ -17,6 +17,22 @@ function init (options) {
         splitIntoDirectories: true
       })
 
+      reporter.documentStore.registerEntityType('DataType', {
+        name: { type: 'Edm.String', publicKey: true },
+        dataJson: { type: 'Edm.String', document: { extension: 'json' } }
+      })
+
+      reporter.documentStore.registerComplexType('DataItemRefType', {
+        shortid: { type: 'Edm.String', referenceTo: 'data' }
+      })
+
+      reporter.documentStore.registerEntitySet('data', {entityType: 'jsreport.DataType'})
+
+      reporter.documentStore.model.entityTypes['TemplateType'].data = {
+        // this makes the reference to accept null also when validating with json schema
+        type: 'jsreport.DataItemRefType', schema: { type: 'null' }
+      }
+
       reporter.documentStore.registerEntityType('ReportType', {
         name: { type: 'Edm.String', publicKey: true }
       })
@@ -979,6 +995,125 @@ describe('folders', function () {
       templatesInFolder2.should.eql(['a', 'c'])
     })
 
+    it('should copy folder', async () => {
+      const folder1 = await reporter.documentStore.collection('folders').insert({
+        name: 'folder1',
+        shortid: 'folder1'
+      })
+
+      const folder2 = await reporter.documentStore.collection('folders').insert({
+        name: 'folder2',
+        shortid: 'folder2'
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 'a',
+        shortid: 'a',
+        folder: { shortid: folder1.shortid }
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 'b',
+        shortid: 'b',
+        folder: { shortid: folder1.shortid }
+      })
+
+      const c = await reporter.documentStore.collection('templates').insert({
+        name: 'c',
+        shortid: 'c',
+        folder: { shortid: folder2.shortid }
+      })
+
+      await reporter.folders.move({
+        source: {
+          entitySet: 'folders',
+          id: folder2._id
+        },
+        target: {
+          shortid: folder1.shortid
+        },
+        shouldCopy: true
+      })
+
+      const folders = await reporter.documentStore.collection('folders').find({})
+      const templates = await reporter.documentStore.collection('templates').find({})
+
+      folders.should.have.length(3)
+      templates.should.have.length(4)
+
+      folders.should.matchAny((f) => f.name.should.be.eql('folder1') && should(f.folder).be.not.ok())
+      folders.should.matchAny((f) => f.name.should.be.eql('folder2') && f.shortid.should.be.eql(folder2.shortid) && should(f.folder).be.not.ok())
+      folders.should.matchAny((f) => f.name.should.be.eql('folder2') && f.folder && f.folder.shortid.should.be.eql(folder1.shortid) && f.shortid.should.be.not.eql(folder2.shortid))
+
+      templates.should.matchAny((t) => t.name.should.be.eql('a') && t.folder.shortid.should.be.eql(folder1.shortid))
+      templates.should.matchAny((t) => t.name.should.be.eql('b') && t.folder.shortid.should.be.eql(folder1.shortid))
+      templates.should.matchAny((t) => t.name.should.be.eql('c') && t.shortid.should.be.eql(c.shortid) && t.folder.shortid.should.be.eql(folder2.shortid))
+      templates.should.matchAny((t) => t.name.should.be.eql('c') && t.shortid.should.be.not.eql(c.shortid) && t.folder.shortid.should.be.not.eql(folder2.shortid))
+    })
+
+    it('should copy folder and fix references', async () => {
+      const folder1 = await reporter.documentStore.collection('folders').insert({
+        name: 'folder1',
+        shortid: 'folder1'
+      })
+
+      const folder2 = await reporter.documentStore.collection('folders').insert({
+        name: 'folder2',
+        shortid: 'folder2'
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 'a',
+        shortid: 'a',
+        folder: { shortid: folder1.shortid }
+      })
+
+      const data = await reporter.documentStore.collection('data').insert({
+        name: 'data',
+        shortid: 'data',
+        folder: { shortid: folder2.shortid }
+      })
+
+      const b = await reporter.documentStore.collection('templates').insert({
+        name: 'b',
+        shortid: 'b',
+        data: {
+          shortid: data.shortid
+        },
+        folder: { shortid: folder2.shortid }
+      })
+
+      await reporter.folders.move({
+        source: {
+          entitySet: 'folders',
+          id: folder2._id
+        },
+        target: {
+          shortid: folder1.shortid
+        },
+        shouldCopy: true
+      })
+
+      const folders = await reporter.documentStore.collection('folders').find({})
+      const templates = await reporter.documentStore.collection('templates').find({})
+      const dataItems = await reporter.documentStore.collection('data').find({})
+
+      folders.should.have.length(3)
+      templates.should.have.length(3)
+      dataItems.should.have.length(2)
+
+      folders.should.matchAny((f) => f.name.should.be.eql('folder1') && should(f.folder).be.not.ok())
+      folders.should.matchAny((f) => f.name.should.be.eql('folder2') && f.shortid.should.be.eql(folder2.shortid) && should(f.folder).be.not.ok())
+      folders.should.matchAny((f) => f.name.should.be.eql('folder2') && f.folder && f.folder.shortid.should.be.eql(folder1.shortid) && f.shortid.should.be.not.eql(folder2.shortid))
+
+      dataItems.should.matchAny((d) => d.name.should.be.eql('data') && d.shortid.should.be.eql(data.shortid) && d.folder.shortid.should.be.eql(folder2.shortid))
+      dataItems.should.matchAny((d) => d.name.should.be.eql('data') && d.shortid.should.be.not.eql(data.shortid) && d.folder.shortid.should.be.not.eql(folder2.shortid))
+
+      templates.should.matchAny((t) => t.name.should.be.eql('a') && t.folder.shortid.should.be.eql(folder1.shortid))
+      templates.should.matchAny((t) => t.name.should.be.eql('b') && t.shortid.should.be.eql(b.shortid) && t.data.shortid.should.be.eql(data.shortid) && t.folder.shortid.should.be.eql(folder2.shortid))
+      templates.should.matchAny((t) => t.name.should.be.eql('b') && t.shortid.should.be.not.eql(b.shortid) && t.data.shortid.should.be.not.eql(data.shortid) && t.folder.shortid.should.be.not.eql(folder2.shortid))
+    })
+
     it('should replace when found duplicate during move file', async () => {
       const folder1 = await reporter.documentStore.collection('folders').insert({
         name: 'folder1',
@@ -1096,10 +1231,6 @@ describe('folders', function () {
       templatesInFolder1.find((e) => e.name === 'b').content.should.eql('b2')
       templatesInFolder2.find((e) => e.name === 'b').content.should.eql('b2')
     })
-
-    // pending feature, copy of folder is implemented but disabled until we solve
-    // some consistency problems with entity's properties that contains references to other entities
-    it('should copy folder')
 
     it('should move to top level', async () => {
       const folder1 = await reporter.documentStore.collection('folders').insert({
