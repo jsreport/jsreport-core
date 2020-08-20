@@ -23,6 +23,8 @@ describe('reporter', () => {
     safeUnlink(path.join(__dirname, 'dev.config.json'))
     safeUnlink(path.join(__dirname, 'jsreport.config.json'))
     safeUnlink(path.join(__dirname, 'custom.config.json'))
+    rimraf.sync(path.join(__dirname, 'tmp'))
+    fs.mkdirSync(path.join(__dirname, 'tmp'))
   }
 
   beforeEach(() => {
@@ -1102,5 +1104,54 @@ describe('reporter', () => {
     })
 
     return should(reporter.readTempFileStream('something.txt')).be.rejectedWith(/Can not use readTempFileStream/)
+  })
+
+  it('executeScript should be able to return a promised value', async () => {
+    fs.writeFileSync(path.join(__dirname, 'tmp', 'testScript.js'), `
+      module.exports = (reporter, originalReq, spec) => {
+        return {         
+          message: 'ok'
+        }          
+      }
+    `)
+
+    const reporter = core({ discover: false, templatingEngines: {strategy: 'in-process'} })
+    await reporter.init()
+    const r = await reporter.executeScript({}, {
+      execModulePath: path.join(__dirname, 'tmp', 'testScript.js'),
+      callbackModulePath: 'use new async api'
+    }, reporter.Request({ template: { } }))
+    r.message.should.be.eql('ok')
+  })
+
+  it.only('executeScript should propagate back context.shared', async () => {
+    fs.writeFileSync(path.join(__dirname, 'tmp', 'testScript.js'), `
+      module.exports = async (inputs, renderCallbackAsync) => {                
+        await renderCallbackAsync({})        
+        inputs.request.context.shared.array.push(3)  
+        return {}       
+      }
+    `)
+
+    fs.writeFileSync(path.join(__dirname, 'tmp', 'testCallback.js'), `
+    module.exports = async (reporter, originalReq, spec) => {      
+      originalReq.context.shared.array.push(2)     
+      return {}       
+    }
+  `)
+
+    const reporter = core({ discover: false, templatingEngines: {strategy: 'dedicated-process'} })
+    await reporter.init()
+
+    const req = reporter.Request({ template: { }, context: { shared: { array: [1] } } })
+
+    await reporter.executeScript({
+      request: req
+    }, {
+      execModulePath: path.join(__dirname, 'tmp', 'testScript.js'),
+      callbackModulePath: path.join(__dirname, 'tmp', 'testCallback.js')
+    }, req)
+
+    console.log(JSON.stringify(req))
   })
 })
