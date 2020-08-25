@@ -47,21 +47,33 @@ jsreport.init().then(() => {
 `render` is the main method which invokes report generation. The only parameter is an object representing rendering request. The request has following structure:
 ```js
 {
-	//[required definition of the document]
+    //[required definition of the document]
     template: {
-	    //[required] templating engine used to assemble document
-	    engine: "handlebars",
-	    //[required] recipe used for printing previously assembled document
-		recipe: "chrome-pdf",
-		//[required] template for the engine		
-		content: "<h1>{{foo}}</h1>",
-		//javascript helper functions used by templating engines
-		helpers: "function foo() { ...} " +
-				 "function foo2() { ... }"
-		//any other settings used by recipes		 
-		...		 
-	},
-	//dynamic data inputs used by templating engines
+        //[required] templating engine used to assemble document
+        engine: "handlebars",
+        //[required] recipe used for printing previously assembled document
+        recipe: "chrome-pdf",
+        //[required] template for the engine		
+        content: "<h1>{{foo}}</h1>",
+        //javascript helper functions used by templating engines
+        helpers: "function foo() { ...} " +
+                "function foo2() { ... }"
+        //any other settings used by recipes		 
+        ...		 
+    },
+    //dynamic data inputs used by templating engines
+    data: { foo: "hello world"}
+    ...
+}
+```
+
+In case you have the template stored in the [jsreport templates store](https://github.com/jsreport/jsreport-core#template-store), you can reference the template using name or path.
+
+```js
+{	
+    template: {
+        name: '/myfolder/mytemplate' 
+    },
     data: { foo: "hello world"}
     ...
 }
