@@ -258,6 +258,12 @@ const jsreport = require('jsreport-core')()
 jsreport.logger.add(winston.transports.Console, { level: 'info' })
 ```
 
+## Typescript
+jsreport types are in the [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) repository.
+You can install [@types/jsreport-core](https://www.npmjs.com/package/@types/jsreport-core) and invidual types for extensions, or get all types at once from [@types/jsreport](https://www.npmjs.com/package/@types/jsreport).
+
+You can also find [jsreport typescript examples here](https://github.com/jsreport/jsreport-typescript-example).
+
 ## Listeners
 jsreport extensions are mainly using the system of event listeners to adapt the rendering process. Extension can for example listen to event which is called before the rendering process starts and adapt the input values.
 
