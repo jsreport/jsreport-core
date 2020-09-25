@@ -45,13 +45,13 @@
   },
   "description": "javascript based business reporting",
   "devDependencies": {
-    "eslint": "4.15.0",
-    "eslint-config-standard": "11.0.0",
-    "eslint-config-standard-react": "5.0.0",
+    "eslint": "7.9.0",
+    "eslint-config-standard": "14.1.1",
+    "eslint-config-standard-react": "9.2.0",
     "mocha": "4.1.0",
     "rimraf": "2.6.3",
-    "should": "13.2.0",
-    "standard": "10.0.3",
+    "should": "13.2.3",
+    "standard": "14.3.4",
     "std-mocks": "1.0.1",
     "winston-loggly": "1.3.1"
   },
