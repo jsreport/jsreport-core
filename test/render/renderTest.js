@@ -1,5 +1,6 @@
-const core = require('../../index.js')
 const should = require('should')
+const { sharedData } = require('serializator')
+const core = require('../../index.js')
 const createRequest = require('../../lib/render/request')
 
 describe('render', () => {
@@ -16,7 +17,7 @@ describe('render', () => {
           timeout: { type: 'Edm.Int32' }
         })
 
-        reporter.documentStore.model.entityTypes['TemplateType'].chrome = { type: 'jsreport.ChromeType' }
+        reporter.documentStore.model.entityTypes.TemplateType.chrome = { type: 'jsreport.ChromeType' }
       }
     })
 
@@ -47,7 +48,7 @@ describe('render', () => {
     })
 
     context.originalInputDataIsEmpty.should.be.eql(true)
-    data.should.be.eql({})
+    sharedData.getData(data).should.be.eql({})
   })
 
   it('should take data', async () => {
@@ -69,7 +70,7 @@ describe('render', () => {
     })
 
     context.originalInputDataIsEmpty.should.be.eql(false)
-    data.should.be.eql({ a: 'a' })
+    sharedData.getData(data).should.be.eql({ a: 'a' })
   })
 
   it('should not be able to pass data as array', async () => {
@@ -87,7 +88,7 @@ describe('render', () => {
     let dataIsArray = false
 
     reporter.beforeRenderListeners.add('test', (req) => {
-      if (Array.isArray(req.data)) {
+      if (Array.isArray(sharedData.getData(req.data))) {
         dataIsArray = true
       }
 
@@ -145,24 +146,24 @@ describe('render', () => {
   })
 
   it('should render simple none engine for html recipe', async () => {
-    const response = await reporter.render({template: {engine: 'none', content: 'foo', recipe: 'html'}})
+    const response = await reporter.render({ template: { engine: 'none', content: 'foo', recipe: 'html' } })
     response.content.toString().should.be.eql('foo')
   })
 
   it('should fail when req.template.recipe not specified', async () => {
-    return reporter.render({template: {content: 'foo2', engine: 'none'}}).should.be.rejectedWith(/Recipe/)
+    return reporter.render({ template: { content: 'foo2', engine: 'none' } }).should.be.rejectedWith(/Recipe/)
   })
 
   it('should fail when req.template.engine not specified', async () => {
-    return reporter.render({template: {content: 'foo2', recipe: 'html'}}).should.be.rejectedWith(/Engine/)
+    return reporter.render({ template: { content: 'foo2', recipe: 'html' } }).should.be.rejectedWith(/Engine/)
   })
 
   it('should fail when req.template.recipe not found', async () => {
-    return reporter.render({template: {content: 'foo2', engine: 'none', recipe: 'foo'}}).should.be.rejectedWith(/Recipe/)
+    return reporter.render({ template: { content: 'foo2', engine: 'none', recipe: 'foo' } }).should.be.rejectedWith(/Recipe/)
   })
 
   it('should fail when req.template.engine not found', async () => {
-    return reporter.render({template: {content: 'foo2', engine: 'foo', recipe: 'html'}}).should.be.rejectedWith(/Engine/)
+    return reporter.render({ template: { content: 'foo2', engine: 'foo', recipe: 'html' } }).should.be.rejectedWith(/Engine/)
   })
 
   it('should call listeners in render', async () => {
@@ -173,7 +174,7 @@ describe('render', () => {
     reporter.afterTemplatingEnginesExecutedListeners.add('test', this, () => listenersCall.push('afterTemplatingEnginesExecuted'))
     reporter.afterRenderListeners.add('test', this, () => listenersCall.push('after'))
 
-    await reporter.render({template: {content: 'Hey', engine: 'none', recipe: 'html'}})
+    await reporter.render({ template: { content: 'Hey', engine: 'none', recipe: 'html' } })
     listenersCall[0].should.be.eql('before')
     listenersCall[1].should.be.eql('validateRender')
     listenersCall[2].should.be.eql('afterTemplatingEnginesExecuted')
@@ -191,7 +192,7 @@ describe('render', () => {
     })
 
     try {
-      await reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}})
+      await reporter.render({ template: { engine: 'none', content: 'none', recipe: 'html' } })
     } catch (e) {
       loggedError.should.be.eql('intentional')
     }
@@ -215,7 +216,7 @@ describe('render', () => {
       reporter.logger.debug('foo', req)
     })
 
-    const response = await reporter.render({template: {engine: 'none', content: 'none', recipe: 'html'}})
+    const response = await reporter.render({ template: { engine: 'none', content: 'none', recipe: 'html' } })
     response.meta.logs.find((l) => l.message === 'foo').should.be.ok()
   })
 
@@ -224,7 +225,7 @@ describe('render', () => {
       template: {},
       options: {},
       context: {
-        logs: [{message: 'hello'}]
+        logs: [{ message: 'hello' }]
       }
     })
 
@@ -235,7 +236,7 @@ describe('render', () => {
     const logs = parentReq.context.logs.map(l => l.message)
 
     logs.should.containEql('hello')
-    logs.should.containEql('Rendering engine none using dedicated-process strategy')
+    logs.should.matchAny((l) => l.should.startWith('Rendering engine none using'))
   })
 
   it('should propagate logs to the parent request (error case)', async () => {
@@ -243,7 +244,7 @@ describe('render', () => {
       template: {},
       options: {},
       context: {
-        logs: [{message: 'hello'}]
+        logs: [{ message: 'hello' }]
       }
     })
 
@@ -261,7 +262,7 @@ describe('render', () => {
       const logs = parentReq.context.logs.map(l => l.message)
 
       logs.should.containEql('hello')
-      logs.should.containEql('Rendering engine none using dedicated-process strategy')
+      logs.should.matchAny((l) => l.should.startWith('Rendering engine none using'))
     }
   })
 
@@ -290,8 +291,8 @@ describe('render', () => {
     let childOriginalInputDataIsEmpty
 
     reporter.beforeRenderListeners.add('test', this, (req) => {
-      data = req.data
-      childOriginalInputDataIsEmpty = req.context.originalInputDataIsEmpty
+      data = sharedData.getData(req.data)
+      childOriginalInputDataIsEmpty = sharedData.getData(req.context.originalInputDataIsEmpty)
     })
 
     const parentReq = createRequest({
@@ -320,14 +321,14 @@ describe('render', () => {
 
     reporter.beforeRenderListeners.add('test', this, (req) => {
       childOriginalInputDataIsEmpty = req.context.originalInputDataIsEmpty
-      data = req.data
+      data = sharedData.getData(req.data)
       options = req.options
     })
 
     const parentReq = createRequest({
       template: {},
-      options: {a: 'a', c: 'c'},
-      data: {a: 'a'},
+      options: { a: 'a', c: 'c' },
+      data: { a: 'a' },
       context: {
         logs: []
       }
@@ -337,7 +338,7 @@ describe('render', () => {
 
     await reporter.render({
       template: { content: 'Hey', engine: 'none', recipe: 'html' },
-      options: {b: 'b', c: 'x'}
+      options: { b: 'b', c: 'x' }
     }, parentReq)
 
     childOriginalInputDataIsEmpty.should.be.eql(false)
@@ -355,14 +356,14 @@ describe('render', () => {
 
     reporter.beforeRenderListeners.add('test', this, (req) => {
       childOriginalInputDataIsEmpty = req.context.originalInputDataIsEmpty
-      data = req.data
+      data = sharedData.getData(req.data)
       options = req.options
     })
 
     const parentReq = createRequest({
       template: {},
-      options: {a: 'a', c: 'c'},
-      data: {a: 'a'},
+      options: { a: 'a', c: 'c' },
+      data: { a: 'a' },
       context: {
         logs: []
       }
@@ -372,8 +373,8 @@ describe('render', () => {
 
     await reporter.render({
       template: { content: 'Hey', engine: 'none', recipe: 'html' },
-      data: {b: 'b'},
-      options: {b: 'b', c: 'x'}
+      data: { b: 'b' },
+      options: { b: 'b', c: 'x' }
     }, parentReq)
 
     childOriginalInputDataIsEmpty.should.be.eql(false)
@@ -388,11 +389,11 @@ describe('render', () => {
 
 function timeoutTests (asReqOption = false) {
   let reporter
-  let reportTimeout = 200
+  const reportTimeout = 200
   let renderOpts
 
   beforeEach(() => {
-    let opts = { discover: false }
+    const opts = { discover: false }
 
     if (!asReqOption) {
       opts.reportTimeout = reportTimeout

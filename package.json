@@ -76,9 +76,13 @@
     "url": "git+ssh://git@github.com/jsreport/jsreport-core.git"
   },
   "engines": {
-    "node": ">=8.9"
+    "node": ">=14.12"
   },
   "standard": {
+    "env": {
+      "node": true,
+      "mocha": true
+    },
     "globals": [
       "describe",
       "it",

@@ -26,9 +26,9 @@ function init (options) {
         shortid: { type: 'Edm.String', referenceTo: 'data' }
       })
 
-      reporter.documentStore.registerEntitySet('data', {entityType: 'jsreport.DataType'})
+      reporter.documentStore.registerEntitySet('data', { entityType: 'jsreport.DataType' })
 
-      reporter.documentStore.model.entityTypes['TemplateType'].data = {
+      reporter.documentStore.model.entityTypes.TemplateType.data = {
         // this makes the reference to accept null also when validating with json schema
         type: 'jsreport.DataItemRefType', schema: { type: 'null' }
       }
@@ -37,7 +37,7 @@ function init (options) {
         name: { type: 'Edm.String', publicKey: true }
       })
 
-      reporter.documentStore.registerEntitySet('reports', {entityType: 'jsreport.ReportType'})
+      reporter.documentStore.registerEntitySet('reports', { entityType: 'jsreport.ReportType' })
     }
   })
 
@@ -90,7 +90,7 @@ describe('folders', function () {
         }
       })
 
-      await reporter.documentStore.collection('folders').remove({name: 'a'})
+      await reporter.documentStore.collection('folders').remove({ name: 'a' })
       const folders = await reporter.documentStore.collection('folders').find({})
       const templates = await reporter.documentStore.collection('templates').find({})
 
@@ -631,7 +631,7 @@ describe('folders', function () {
 
       return reporter.documentStore.collection('templates').insert({
         name: 'duplicate'
-      }).should.be.rejectedWith({code: 'DUPLICATED_ENTITY'})
+      }).should.be.rejectedWith({ code: 'DUPLICATED_ENTITY' })
     })
 
     it('upsert duplicated entity name into the root should fail', async () => {
@@ -649,7 +649,7 @@ describe('folders', function () {
         }
       }, {
         upsert: true
-      }).should.be.rejectedWith({code: 'DUPLICATED_ENTITY'})
+      }).should.be.rejectedWith({ code: 'DUPLICATED_ENTITY' })
     })
 
     it('inserting duplicated entity name into different folder should work', async () => {

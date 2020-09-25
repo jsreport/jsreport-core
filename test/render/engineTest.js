@@ -5,15 +5,21 @@ const ScriptManager = require('script-manager')
 const safeSandboxPath = path.join(__dirname, '../../lib/render/safeSandbox')
 
 describe('engine', () => {
-  describe('engine with dedicated-process strategy', () => {
-    const scriptManager = ScriptManager({ strategy: 'dedicated-process' })
+  describe('engine with worker-threads strategy', () => {
+    const scriptManager = ScriptManager({ strategy: 'worker-threads' })
 
     beforeEach((done) => {
       scriptManager.ensureStarted(done)
       global.gc = () => { }
     })
 
+    afterEach((done) => {
+      scriptManager.kill()
+      setTimeout(done, 100)
+    })
+
     common(scriptManager)
+    cache(scriptManager)
   })
 
   describe('engine with http-server strategy', () => {
@@ -24,8 +30,29 @@ describe('engine', () => {
       global.gc = () => { }
     })
 
+    afterEach((done) => {
+      scriptManager.kill()
+      setTimeout(done, 200)
+    })
+
     common(scriptManager)
     cache(scriptManager)
+  })
+
+  describe('engine with dedicated-process strategy', () => {
+    const scriptManager = ScriptManager({ strategy: 'dedicated-process' })
+
+    beforeEach((done) => {
+      scriptManager.ensureStarted(done)
+      global.gc = () => { }
+    })
+
+    afterEach((done) => {
+      scriptManager.kill()
+      setTimeout(done, 200)
+    })
+
+    common(scriptManager)
   })
 
   describe('engine with in-process strategy', function () {
@@ -34,6 +61,11 @@ describe('engine', () => {
     beforeEach((done) => {
       scriptManager.ensureStarted(done)
       global.gc = () => { }
+    })
+
+    afterEach((done) => {
+      scriptManager.kill()
+      setTimeout(done, 200)
     })
 
     common(scriptManager)
@@ -251,7 +283,7 @@ describe('engine', () => {
         engineOptions: engineOpts,
         nativeModules: [],
         templatingEngines: { templateCache: { enabled: false }, modules: [], nativeModules: [], allowedModules: [] },
-        data: { 'a': { 'val': 'foo' } }
+        data: { a: { val: 'foo' } }
       }, () => {}, (err, res) => {
         if (err) {
           return done(err)
@@ -269,7 +301,7 @@ describe('engine', () => {
         engine: path.join(__dirname, 'dataEngine.js'),
         nativeModules: [],
         templatingEngines: { templateCache: { enabled: false }, modules: [], nativeModules: [], allowedModules: [] },
-        data: { 'a': { 'val': 'foo' } }
+        data: { a: { val: 'foo' } }
       }, () => {
       }, (err, res) => {
         if (err) {
@@ -364,9 +396,9 @@ describe('engine', () => {
           content: ''
         },
         data: {
-          '$id': 0,
-          'b': { '$id': '1', 'val': 'foo' },
-          'a': { '$ref': '1' }
+          $id: 0,
+          b: { $id: '1', val: 'foo' },
+          a: { $ref: '1' }
         },
         engine: path.join(__dirname, 'dataEngine.js')
       }, () => {

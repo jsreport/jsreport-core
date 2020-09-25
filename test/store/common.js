@@ -102,7 +102,7 @@ function collectionTests (store, isInternal, runTransactions) {
     await getCollection(colName).insert({ name: '3' })
     await getCollection(colName).insert({ name: '2' })
 
-    const res = await getCollection(colName).find({}).sort({name: 1}).skip(1).limit(1).toArray()
+    const res = await getCollection(colName).find({}).sort({ name: 1 }).skip(1).limit(1).toArray()
     res.length.should.be.eql(1)
     res[0].name.should.be.eql('2')
   })
@@ -114,7 +114,7 @@ function collectionTests (store, isInternal, runTransactions) {
     await getCollection(colName).insert({ name: '2', recipe: 'b' })
     await getCollection(colName).insert({ name: '3', recipe: 'b' })
 
-    const res = await getCollection(colName).find({$and: [{name: '2'}, {recipe: 'b'}]}).toArray()
+    const res = await getCollection(colName).find({ $and: [{ name: '2' }, { recipe: 'b' }] }).toArray()
     res.length.should.be.eql(1)
     res[0].name.should.be.eql('2')
     res[0].recipe.should.be.eql('b')
@@ -153,7 +153,7 @@ function collectionTests (store, isInternal, runTransactions) {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
     await getCollection(colName).insert({ name: 'test' })
-    const res = await getCollection(colName).find({ name: 'test' }, Request({template: {}}))
+    const res = await getCollection(colName).find({ name: 'test' }, Request({ template: {} }))
     res[0].name.should.be.eql('test')
   })
 

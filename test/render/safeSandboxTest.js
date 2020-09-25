@@ -10,14 +10,14 @@ describe('sandbox', () => {
         done()
       }
     })
-    run(`done(a)`)
+    run('done(a)')
   })
 
   it('should be able to set normal sandbox props', () => {
     const { run, sandbox } = safeSandbox({
       a: 'foo'
     })
-    run(`a = 'x';`)
+    run('a = \'x\';')
     sandbox.a.should.be.eql('x')
   })
 
@@ -25,7 +25,7 @@ describe('sandbox', () => {
     const { run, sandbox } = safeSandbox({
       a: { b: 'a' }
     })
-    run(`a.b = 'x';`)
+    run('a.b = \'x\';')
     sandbox.a.b.should.be.eql('x')
   })
 
@@ -34,12 +34,12 @@ describe('sandbox', () => {
       a: 'a'
     }, {
       propertiesConfig: {
-        'a': {
+        a: {
           sandboxReadOnly: false
         }
       }
     })
-    run(`a = 'x';`)
+    run('a = \'x\';')
     sandbox.a.should.be.eql('x')
   })
 
@@ -52,12 +52,12 @@ describe('sandbox', () => {
       a: 'foo'
     }, {
       propertiesConfig: {
-        'a': {
+        a: {
           sandboxHidden: true
         }
       }
     })
-    run(`done(typeof a === 'undefined')`)
+    run('done(typeof a === \'undefined\')')
   })
 
   it('should hide nested props', (done) => {
@@ -74,7 +74,7 @@ describe('sandbox', () => {
         }
       }
     })
-    run(`done(a.b)`)
+    run('done(a.b)')
   })
 
   it('should make simple props readonly', () => {
@@ -86,7 +86,7 @@ describe('sandbox', () => {
       }
     })
 
-    should.throws(() => run(`a.b = 1`))
+    should.throws(() => run('a.b = 1'))
   })
 
   it('should make props readonly one level recursively', () => {
@@ -98,7 +98,7 @@ describe('sandbox', () => {
       }
     })
 
-    should.throws(() => run(`a.b.c = 1`))
+    should.throws(() => run('a.b.c = 1'))
   })
 
   it('should allow configure top level and inner level properties at the same time', () => {
@@ -120,10 +120,10 @@ describe('sandbox', () => {
       }
     })
 
-    run(`check(a.b.c === undefined)`)
+    run('check(a.b.c === undefined)')
 
     should(isHidden).be.eql(true)
-    should.throws(() => run(`a.b.c = 1`))
+    should.throws(() => run('a.b.c = 1'))
   })
 
   it('should not fail when configuring top level and inner level properties but parent value is empty', () => {
@@ -145,7 +145,7 @@ describe('sandbox', () => {
       }
     })
 
-    run(`check(a.b === undefined)`)
+    run('check(a.b === undefined)')
     should(isHidden).be.eql(true)
   })
 
@@ -184,6 +184,6 @@ describe('sandbox', () => {
 
   it('should prevent constructor hacks', () => {
     const { run } = safeSandbox({})
-    should.throws(() => run(`this.constructor.constructor('return process')().exit()`))
+    should.throws(() => run('this.constructor.constructor(\'return process\')().exit()'))
   })
 })

@@ -478,9 +478,9 @@ describe('document store', () => {
             footerTemplate: { type: 'Edm.String', document: { extension: 'html', engine: true } }
           })
 
-          store.model.entityTypes['ComplexTemplateType'].chrome = { type: 'jsreport.ChromeType' }
+          store.model.entityTypes.ComplexTemplateType.chrome = { type: 'jsreport.ChromeType' }
 
-          store.model.entityTypes['ComplexTemplateType'].tags = {
+          store.model.entityTypes.ComplexTemplateType.tags = {
             type: 'Collection(Edm.String)'
           }
 
@@ -656,11 +656,11 @@ function init (options, customExt) {
         })
 
         reporter.documentStore.registerComplexType('TagRefType', {
-          'value': { type: 'Edm.String' }
+          value: { type: 'Edm.String' }
         })
 
         reporter.documentStore.registerComplexType('TemplateReportRefType', {
-          'shortid': { type: 'Edm.String', referenceTo: 'templates' }
+          shortid: { type: 'Edm.String', referenceTo: 'templates' }
         })
 
         reporter.documentStore.registerEntityType('ReportType', {
@@ -720,11 +720,7 @@ function init (options, customExt) {
               return
             }
 
-            try {
-              doc.encryptedValue = await reporter.encryption.encrypt(doc.encryptedValue)
-            } catch (e) {
-              throw e
-            }
+            doc.encryptedValue = await reporter.encryption.encrypt(doc.encryptedValue)
           })
         })
       }

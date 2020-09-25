@@ -33,7 +33,7 @@ describe('reporter', () => {
   }
 
   beforeEach(async () => {
-    process.argv = [ ...originalArgs ]
+    process.argv = [...originalArgs]
     process.env = { ...originalEnv }
 
     if (fs.existsSync(path.join(__dirname, 'jsreport.config.json'))) {
@@ -514,7 +514,7 @@ describe('reporter', () => {
       reporter = core({
         rootDirectory: path.join(__dirname),
         extensions: {
-          'test': {
+          test: {
             name: 'testing'
           }
         }
@@ -718,7 +718,7 @@ describe('reporter', () => {
   })
 
   it('should parse both separators of env options into reporter options', async () => {
-    process.env['some_object'] = 'some'
+    process.env.some_object = 'some'
     process.env['another:object'] = 'another'
 
     reporter = core({
@@ -793,7 +793,7 @@ describe('reporter', () => {
 
   it('should merge camel case config from env over config file values for configuration of extensions', async () => {
     fs.writeFileSync(path.join(__dirname, 'jsreport.config.json'), JSON.stringify({ extensions: { 'custom-extension': { foo: 'fromfile' } } }))
-    process.env['extensions_customExtension_foo'] = 'fromenv'
+    process.env.extensions_customExtension_foo = 'fromenv'
     reporter = core({
       rootDirectory: path.join(__dirname),
       loadConfig: true
@@ -816,7 +816,7 @@ describe('reporter', () => {
     process.argv.push('--extensions.customExtension.foo')
     process.argv.push('fromarg')
 
-    process.env['extensions_customExtension_foo'] = 'fromenv'
+    process.env.extensions_customExtension_foo = 'fromenv'
     reporter = core({
       rootDirectory: path.join(__dirname),
       loadConfig: true
@@ -863,7 +863,7 @@ describe('reporter', () => {
   })
 
   it('should skip extension with enabled === false in config', async () => {
-    reporter = core({rootDirectory: __dirname, extensions: {test: {enabled: false}}})
+    reporter = core({ rootDirectory: __dirname, extensions: { test: { enabled: false } } })
     await reporter.init()
     should(reporter.testExtensionInitialized).not.eql(true)
   })
@@ -1132,7 +1132,7 @@ describe('reporter', () => {
       }
     `)
 
-    reporter = core({ discover: false, templatingEngines: {strategy: 'in-process'} })
+    reporter = core({ discover: false, templatingEngines: { strategy: 'in-process' } })
     await reporter.init()
     const r = await reporter.executeScript({
       request: reporter.Request({ template: { content: 'foo', engine: 'none', recipe: 'html' } })
@@ -1159,7 +1159,7 @@ describe('reporter', () => {
       }
    `)
 
-    reporter = core({ discover: false, templatingEngines: {strategy: 'dedicated-process'} })
+    reporter = core({ discover: false, templatingEngines: { strategy: 'dedicated-process' } })
     await reporter.init()
 
     const req = reporter.Request({ template: { }, context: { shared: { array: [1] } } })

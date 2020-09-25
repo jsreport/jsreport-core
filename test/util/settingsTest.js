@@ -36,12 +36,12 @@ describe('Settings', function () {
   it('add update get should result into updated value', async () => {
     await settings.add('test', 'val')
     await settings.set('test', 'modified')
-    assert.equal('modified', settings.get('test').value)
+    assert.strictEqual('modified', settings.get('test').value)
   })
 
   it('add and get should result into same value', async () => {
     await settings.add('test', 'val')
-    assert.equal('val', settings.get('test').value)
+    assert.strictEqual('val', settings.get('test').value)
   })
 
   it('should remove incompatible settings during startup', async () => {

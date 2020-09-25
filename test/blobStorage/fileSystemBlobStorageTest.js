@@ -110,7 +110,7 @@ describe('fileSystemBlobStorage', () => {
 
         const content = await new Promise((resolve, reject) => {
           const stream = blobStorage.read(blobName)
-          let buf = []
+          const buf = []
 
           stream.on('data', (chunk) => {
             buf.push(chunk)
