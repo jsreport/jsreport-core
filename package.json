@@ -39,7 +39,7 @@
     "streamifier": "0.1.1",
     "unset-value": "1.0.0",
     "uuid": "3.3.2",
-    "vm2": "3.8.3",
+    "vm2": "3.9.2",
     "winston": "2.4.5",
     "winston-transport": "3.0.1"
   },
